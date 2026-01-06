@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.16)
-project(crow_server)
+project(test_server)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-add_subdirectory(third_party/crow)
+# 🔐 Activer HTTPS pour cpp-httplib
+add_definitions(-DCPPHTTPLIB_OPENSSL_SUPPORT)
+
+# 🔐 OpenSSL (obligatoire pour https)
+find_package(OpenSSL REQUIRED)
 
 include_directories(
-    third_party/crow/include
+    external/httplib
+    external/nlohmann_json
     app
 )
 
@@ -16,12 +21,10 @@ file(GLOB_RECURSE SOURCES
     app/**/*.cpp
 )
 
-# Optionnel : exclure explicitement les tests Crow
-list(FILTER SOURCES EXCLUDE REGEX "third_party/crow/tests/.*")
+add_executable(test_server ${SOURCES})
 
-
-add_executable(crow_server ${SOURCES})
-
-target_link_libraries(crow_server
-    Crow::Crow
+# 🔗 Link OpenSSL
+target_link_libraries(test_server
+    OpenSSL::SSL
+    OpenSSL::Crypto
 )
