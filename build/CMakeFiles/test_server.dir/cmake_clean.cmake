@@ -1,4 +1,6 @@
 file(REMOVE_RECURSE
+  "CMakeFiles/test_server.dir/app/routes/auth_routes.cpp.o"
+  "CMakeFiles/test_server.dir/app/routes/auth_routes.cpp.o.d"
   "CMakeFiles/test_server.dir/main.cpp.o"
   "CMakeFiles/test_server.dir/main.cpp.o.d"
   "test_server"

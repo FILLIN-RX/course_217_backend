@@ -2,7 +2,7 @@
 
 #include <string>
 #include <httplib.h>
-#include "supabase_client.h"
+#include "services/supabase_client.h"
 #include <nlohmann/json.hpp>
 
 class AuthController {

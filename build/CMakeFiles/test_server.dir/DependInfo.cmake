@@ -8,6 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
+  "/mnt/c/Users/Fillin/desktop/project/course_217_backend/app/routes/auth_routes.cpp" "CMakeFiles/test_server.dir/app/routes/auth_routes.cpp.o" "gcc" "CMakeFiles/test_server.dir/app/routes/auth_routes.cpp.o.d"
   "/mnt/c/Users/Fillin/desktop/project/course_217_backend/main.cpp" "CMakeFiles/test_server.dir/main.cpp.o" "gcc" "CMakeFiles/test_server.dir/main.cpp.o.d"
   )
 

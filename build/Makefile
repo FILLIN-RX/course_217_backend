@@ -129,6 +129,30 @@ test_server/fast:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/build
 .PHONY : test_server/fast
 
+app/routes/auth_routes.o: app/routes/auth_routes.cpp.o
+.PHONY : app/routes/auth_routes.o
+
+# target to build an object file
+app/routes/auth_routes.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/app/routes/auth_routes.cpp.o
+.PHONY : app/routes/auth_routes.cpp.o
+
+app/routes/auth_routes.i: app/routes/auth_routes.cpp.i
+.PHONY : app/routes/auth_routes.i
+
+# target to preprocess a source file
+app/routes/auth_routes.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/app/routes/auth_routes.cpp.i
+.PHONY : app/routes/auth_routes.cpp.i
+
+app/routes/auth_routes.s: app/routes/auth_routes.cpp.s
+.PHONY : app/routes/auth_routes.s
+
+# target to generate assembly for a file
+app/routes/auth_routes.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/test_server.dir/build.make CMakeFiles/test_server.dir/app/routes/auth_routes.cpp.s
+.PHONY : app/routes/auth_routes.cpp.s
+
 main.o: main.cpp.o
 .PHONY : main.o
 
@@ -162,6 +186,9 @@ help:
 	@echo "... edit_cache"
 	@echo "... rebuild_cache"
 	@echo "... test_server"
+	@echo "... app/routes/auth_routes.o"
+	@echo "... app/routes/auth_routes.i"
+	@echo "... app/routes/auth_routes.s"
 	@echo "... main.o"
 	@echo "... main.i"
 	@echo "... main.s"

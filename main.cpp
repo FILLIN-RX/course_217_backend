@@ -2,6 +2,7 @@
 #include <iostream>
 #include <httplib.h>
 #include "app/services/supabase_client.h"
+#include "app/routes/auth_routes.h"
 
 int main() {
     const char* url = std::getenv("SUPABASE_URL");
@@ -13,24 +14,11 @@ int main() {
     }
 
     SupabaseClient supabase(url, key);
-
     httplib::Server server;
 
-    // ✅ ROUTE DE TEST
-    server.Get("/test-supabase", [&](const httplib::Request&, httplib::Response& res) {
-        auto response = supabase.get("/rest/v1/seances?select=*");
+    // Enregistre toutes les routes Auth
+    registerAuthRoutes(server, supabase);
 
-        if (response && response->status == 200) {
-            res.set_content(response->body, "application/json");
-            res.status = 200;
-        } else {
-            res.set_content("{\"error\":\"Supabase request failed\"}", "application/json");
-            res.status = 500;
-        }
-    });
-
-    std::cout << "🚀 Test server running on http://localhost:8080\n";
+    std::cout << "🚀 Server running on http://localhost:8080\n";
     server.listen("0.0.0.0", 8080);
-
-    return 0;
 }
