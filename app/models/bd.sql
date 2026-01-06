@@ -7,7 +7,7 @@ CREATE TABLE utilisateurs (
     email VARCHAR(100) UNIQUE,
     mot_de_passe_hash VARCHAR(255),
     telephone VARCHAR(20),
-    type VARCHAR(20), -- 'enseignant', 'etudiant', 'admin'
+    profil VARCHAR(20), -- 'enseignant', 'etudiant', 'admin'
     date_creation TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ); 
 
@@ -67,7 +67,7 @@ CREATE TABLE salle (
     salle_id INT PRIMARY KEY AUTO_INCREMENT,
     nom VARCHAR(50),
     capacite INT,
-    type VARCHAR(50),
+    type_salle VARCHAR(50),
     equipements TEXT,
     batiment VARCHAR(50),
     etage INT
@@ -78,7 +78,7 @@ CREATE TABLE enseignant_matiere (
     enseignant_matiere_id INT PRIMARY KEY AUTO_INCREMENT,
     enseignant_id INT,
     matiere_id INT,
-    role VARCHAR(50),
+    type_responsabilite VARCHAR(50),--enseignant principal, co-enseignant, chargé de TP, chargé de TD--
     heures_attribuees INT,
     annee_scolaire VARCHAR(20),
     FOREIGN KEY (enseignant_id) REFERENCES enseignant(enseignant_id),
@@ -92,7 +92,7 @@ CREATE TABLE seance (
     enseignant_id INT,
     salle_id INT,
     groupe_id INT,
-    type VARCHAR(20), -- 'CM', 'TD', 'TP'
+    type_seance VARCHAR(20), -- 'CM', 'TD', 'TP'
     date_seance DATE,
     heure_debut TIME,
     heure_fin TIME,
@@ -126,8 +126,8 @@ CREATE TABLE conflit (
     conflit_id INT PRIMARY KEY AUTO_INCREMENT,
     seance_1_id INT,
     seance_2_id INT,
-    type VARCHAR(50),
-    description TEXT,
+    conflit_type VARCHAR(50),--C'est le type de conflit--
+    description_conflit TEXT,--C'est la description du conflit--
     severite VARCHAR(20),
     date_detection TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     resolu BOOLEAN DEFAULT FALSE,
