@@ -1,3 +1,0 @@
-/mnt/c/Users/Fillin/desktop/project/course_217_backend/build/CMakeFiles/test_server.dir
-/mnt/c/Users/Fillin/desktop/project/course_217_backend/build/CMakeFiles/edit_cache.dir
-/mnt/c/Users/Fillin/desktop/project/course_217_backend/build/CMakeFiles/rebuild_cache.dir
