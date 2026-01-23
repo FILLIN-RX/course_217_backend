@@ -79,10 +79,7 @@ CREATE TABLE ues (
   id INT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(20) NOT NULL,
   intitule VARCHAR(100) NOT NULL,
-  classe_id INT NOT NULL,
-  enseignant_id INT NOT NULL,
-  FOREIGN KEY (classe_id) REFERENCES classes(id),
-  FOREIGN KEY (enseignant_id) REFERENCES enseignants(id)
+
 );
 
 -- =========================

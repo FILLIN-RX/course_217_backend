@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>UniSched Admin Dashboard</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Icons -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0a483a",
+                        "background-light": "#fafafa",
+                        "background-dark": "#22252a",
+                        "card-light": "#ffffff",
+                        "card-dark": "#2c3036",
+                        "text-main": "#111716",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "2xl": "1rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        /* Custom scrollbar for sidebar if needed */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .glass-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+        }
+        
+        /* Circular progress animation */
+        circle {
+            transition: stroke-dashoffset 1s ease-in-out;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-text-main dark:text-gray-100 overflow-hidden h-screen flex">
+<!-- Sidebar -->
+<aside class="w-72 bg-primary h-full flex flex-col justify-between shrink-0 shadow-xl z-20 transition-all duration-300">
+<!-- Header / Logo -->
+<div class="p-6 pb-2">
+<div class="flex items-center gap-3 text-white mb-8">
+<div class="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center backdrop-blur-sm border border-white/10">
+<span class="material-symbols-outlined text-2xl">school</span>
+</div>
+<div>
+<h1 class="font-bold text-lg tracking-tight leading-none">UniSched</h1>
+<p class="text-xs text-white/60 font-medium tracking-wide uppercase mt-0.5">Admin Console</p>
+</div>
+</div>
+<!-- Navigation -->
+<nav class="flex flex-col gap-1.5">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-white/20 text-white shadow-inner border border-white/5 transition-all group" href="#">
+<span class="material-symbols-outlined filled">dashboard</span>
+<span class="text-sm font-semibold">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">calendar_month</span>
+<span class="text-sm font-medium">Schedule Builder</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">groups</span>
+<span class="text-sm font-medium">Faculty</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">meeting_room</span>
+<span class="text-sm font-medium">Room Allocation</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined group-hover:scale-110 transition-transform">bar_chart</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+</nav>
+</div>
+<!-- Footer / User -->
+<div class="p-6 border-t border-white/10">
+<div class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/10 hover:text-white transition-all group" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+<div class="mt-4 flex items-center gap-3 px-4 py-3 rounded-xl bg-black/20">
+<div class="w-8 h-8 rounded-full bg-yellow-500 flex items-center justify-center text-primary font-bold text-xs">AD</div>
+<div class="flex flex-col overflow-hidden">
+<span class="text-sm font-bold text-white truncate">Admin User</span>
+<span class="text-xs text-white/50 truncate">admin@univ.edu</span>
+</div>
+<button class="ml-auto text-white/50 hover:text-white">
+<span class="material-symbols-outlined text-lg">logout</span>
+</button>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 h-full overflow-y-auto relative">
+<!-- Top Bar / Header -->
+<header class="sticky top-0 z-10 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md px-8 py-6 border-b border-gray-200 dark:border-gray-800">
+<div class="flex flex-wrap justify-between items-center gap-4 max-w-7xl mx-auto">
+<div>
+<h2 class="text-3xl font-black text-primary dark:text-white tracking-tight">Fall Semester 2024</h2>
+<p class="text-gray-500 dark:text-gray-400 text-sm mt-1 font-medium">Overview &amp; Status Check</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2.5 rounded-lg bg-white dark:bg-card-dark border border-gray-200 dark:border-gray-700 text-sm font-bold text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+<span>Select Semester</span>
+<span class="material-symbols-outlined text-lg">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-5 py-2.5 rounded-lg bg-primary text-white text-sm font-bold hover:bg-primary/90 transition-all shadow-md hover:shadow-lg">
+<span class="material-symbols-outlined text-lg">add</span>
+<span>Add Class</span>
+</button>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto flex flex-col gap-8">
+<!-- Key Stats Row -->
+<section class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<!-- Stat 1 -->
+<div class="group bg-white dark:bg-card-dark p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary dark:text-white">class</span>
+</div>
+<div class="flex flex-col h-full justify-between">
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total Classes</p>
+<div class="mt-2 flex items-baseline gap-2">
+<h3 class="text-4xl font-extrabold text-primary dark:text-white">1,240</h3>
+<span class="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded text-xs font-bold">+5%</span>
+</div>
+</div>
+<div class="mt-4 w-full bg-gray-100 dark:bg-gray-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full rounded-full" style="width: 85%"></div>
+</div>
+<p class="mt-2 text-xs text-gray-400 font-medium">85% scheduled</p>
+</div>
+</div>
+<!-- Stat 2 -->
+<div class="group bg-white dark:bg-card-dark p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary dark:text-white">person_check</span>
+</div>
+<div class="flex flex-col h-full justify-between">
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Active Teachers</p>
+<div class="mt-2 flex items-baseline gap-2">
+<h3 class="text-4xl font-extrabold text-primary dark:text-white">284</h3>
+<span class="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2 py-0.5 rounded text-xs font-bold">+12</span>
+</div>
+</div>
+<div class="mt-4 flex gap-1">
+<div class="h-1.5 flex-1 bg-primary rounded-l-full"></div>
+<div class="h-1.5 w-1/4 bg-yellow-400"></div>
+<div class="h-1.5 w-12 bg-gray-200 dark:bg-gray-700 rounded-r-full"></div>
+</div>
+<p class="mt-2 text-xs text-gray-400 font-medium">20 pending assignments</p>
+</div>
+</div>
+<!-- Stat 3 -->
+<div class="group bg-white dark:bg-card-dark p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 hover:shadow-md transition-all duration-300 relative overflow-hidden">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-6xl text-primary dark:text-white">door_open</span>
+</div>
+<div class="flex flex-col h-full justify-between">
+<div>
+<p class="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Room Utilization</p>
+<div class="mt-2 flex items-baseline gap-2">
+<h3 class="text-4xl font-extrabold text-primary dark:text-white">72%</h3>
+<span class="text-rose-500 bg-rose-50 dark:bg-rose-900/30 px-2 py-0.5 rounded text-xs font-bold">-1%</span>
+</div>
+</div>
+<!-- Mini bar chart visualization -->
+<div class="mt-4 flex items-end gap-1 h-6">
+<div class="w-1/6 bg-primary/30 h-3 rounded-sm"></div>
+<div class="w-1/6 bg-primary/50 h-4 rounded-sm"></div>
+<div class="w-1/6 bg-primary h-full rounded-sm"></div>
+<div class="w-1/6 bg-primary/80 h-5 rounded-sm"></div>
+<div class="w-1/6 bg-primary/40 h-2 rounded-sm"></div>
+<div class="w-1/6 bg-primary/20 h-3 rounded-sm"></div>
+</div>
+<p class="mt-2 text-xs text-gray-400 font-medium">Capacity optimal</p>
+</div>
+</div>
+</section>
+<!-- Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 min-h-[400px]">
+<!-- Departmental Readiness (Circular Charts) -->
+<section class="lg:col-span-2 bg-white dark:bg-card-dark p-6 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col">
+<div class="flex justify-between items-center mb-8">
+<div>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Departmental Readiness</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Schedule completion by faculty</p>
+</div>
+<button class="text-primary dark:text-primary-light text-sm font-bold hover:underline">View All Departments</button>
+</div>
+<div class="flex-1 grid grid-cols-1 md:grid-cols-3 gap-8 items-center justify-items-center">
+<!-- Engineering Donut -->
+<div class="flex flex-col items-center gap-3">
+<div class="relative w-36 h-36">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-gray-100 dark:text-gray-700 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-primary stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="25.12" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+<span class="text-3xl font-bold text-gray-800 dark:text-white">90%</span>
+</div>
+</div>
+<div class="text-center">
+<p class="font-bold text-gray-800 dark:text-gray-200">Engineering</p>
+<p class="text-xs text-gray-500">120/132 Classes</p>
+</div>
+</div>
+<!-- Arts Donut -->
+<div class="flex flex-col items-center gap-3">
+<div class="relative w-36 h-36">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-gray-100 dark:text-gray-700 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-amber-400 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="138" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+<span class="text-3xl font-bold text-gray-800 dark:text-white">45%</span>
+</div>
+</div>
+<div class="text-center">
+<p class="font-bold text-gray-800 dark:text-gray-200">Arts &amp; Humanities</p>
+<p class="text-xs text-gray-500">45/100 Classes</p>
+</div>
+</div>
+<!-- Science Donut -->
+<div class="flex flex-col items-center gap-3">
+<div class="relative w-36 h-36">
+<svg class="w-full h-full" viewbox="0 0 100 100">
+<circle class="text-gray-100 dark:text-gray-700 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-width="8"></circle>
+<circle class="text-emerald-500 stroke-current" cx="50" cy="50" fill="transparent" r="40" stroke-dasharray="251.2" stroke-dashoffset="75.36" stroke-linecap="round" stroke-width="8"></circle>
+</svg>
+<div class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+<span class="text-3xl font-bold text-gray-800 dark:text-white">70%</span>
+</div>
+</div>
+<div class="text-center">
+<p class="font-bold text-gray-800 dark:text-gray-200">Science</p>
+<p class="text-xs text-gray-500">70/100 Classes</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Automatic Alerts Feed -->
+<section class="lg:col-span-1 bg-white dark:bg-card-dark rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 flex flex-col overflow-hidden">
+<div class="p-6 pb-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50">
+<div class="flex items-center gap-2">
+<span class="relative flex h-3 w-3">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+<span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+</span>
+<h3 class="text-lg font-bold text-gray-900 dark:text-white">Automatic Alerts</h3>
+</div>
+<p class="text-xs text-gray-500 mt-1 pl-5">3 items require your attention</p>
+</div>
+<div class="flex-1 overflow-y-auto p-2">
+<!-- Alert Item 1 -->
+<div class="flex gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-full bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-xl">warning</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start w-full">
+<h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">Room Conflict Detected</h4>
+<span class="text-[10px] font-bold text-gray-400 bg-gray-100 dark:bg-gray-700 px-1.5 py-0.5 rounded">NOW</span>
+</div>
+<p class="text-xs text-gray-500 leading-relaxed">Lecture Hall B is double booked on Mon 10:00 AM. CS101 vs ENG202.</p>
+<button class="mt-2 text-xs font-bold text-rose-600 dark:text-rose-400 self-start group-hover:underline">Resolve Conflict</button>
+</div>
+</div>
+<!-- Alert Item 2 -->
+<div class="flex gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors cursor-pointer group">
+<div class="w-10 h-10 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-xl">person_alert</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start w-full">
+<h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">Pending Approval</h4>
+<span class="text-[10px] font-bold text-gray-400">2h ago</span>
+</div>
+<p class="text-xs text-gray-500 leading-relaxed">Dr. Smith requested a schedule change for BIO101 lab sessions.</p>
+<div class="flex gap-2 mt-2">
+<button class="px-3 py-1 bg-white border border-gray-200 rounded text-xs font-bold text-gray-600 shadow-sm hover:bg-gray-50">Decline</button>
+<button class="px-3 py-1 bg-primary text-white rounded text-xs font-bold shadow-sm hover:bg-primary/90">Approve</button>
+</div>
+</div>
+</div>
+<!-- Alert Item 3 -->
+<div class="flex gap-4 p-4 hover:bg-gray-50 dark:hover:bg-gray-700/50 rounded-xl transition-colors cursor-pointer group opacity-60">
+<div class="w-10 h-10 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+</div>
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-start w-full">
+<h4 class="text-sm font-bold text-gray-800 dark:text-gray-200">Mathematics Finalized</h4>
+<span class="text-[10px] font-bold text-gray-400">1d ago</span>
+</div>
+<p class="text-xs text-gray-500 leading-relaxed">Dept Head approved the final draft. No further changes allowed.</p>
+</div>
+</div>
+</div>
+<button class="p-3 text-center text-xs font-bold text-gray-500 hover:text-primary hover:bg-gray-50 transition-colors border-t border-gray-100 dark:border-gray-700 w-full block">
+                        View All Alerts
+                    </button>
+</section>
+</div>
+<!-- Bottom Section - Quick Stats (Optional row for density) -->
+<section class="bg-primary text-white rounded-2xl p-6 relative overflow-hidden flex flex-col md:flex-row justify-between items-center gap-6 shadow-lg">
+<div class="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/3 blur-2xl"></div>
+<div class="relative z-10 max-w-lg">
+<h3 class="text-xl font-bold mb-2">Schedule Publishing Countdown</h3>
+<p class="text-white/80 text-sm">The finalized schedule for Fall 2024 is set to be published to all students in 3 days. Ensure all conflicts are resolved.</p>
+</div>
+<div class="relative z-10 flex gap-4">
+<div class="flex flex-col items-center bg-white/10 backdrop-blur-sm rounded-lg p-3 w-20">
+<span class="text-2xl font-bold">03</span>
+<span class="text-[10px] uppercase tracking-wider opacity-70">Days</span>
+</div>
+<div class="flex flex-col items-center bg-white/10 backdrop-blur-sm rounded-lg p-3 w-20">
+<span class="text-2xl font-bold">14</span>
+<span class="text-[10px] uppercase tracking-wider opacity-70">Hours</span>
+</div>
+<button class="bg-white text-primary px-6 py-3 rounded-xl font-bold text-sm shadow-lg hover:scale-105 transition-transform">
+                         Publish Now
+                     </button>
+</div>
+</section>
+</div>
+</main>
+</body></html>

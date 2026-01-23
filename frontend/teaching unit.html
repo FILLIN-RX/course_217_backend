@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Teaching Units Management - UniSched</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@300;400;500;600;700&amp;family=Epilogue:wght@500;600;700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#29a38f",
+                        "primary-dark": "#208272",
+                        "background-light": "#ffffff",
+                        "background-dark": "#1a1f23",
+                        "subtle-gray": "#f1f4f3",
+                        "text-main": "#121716",
+                        "text-muted": "#67837f",
+                    },
+                    fontFamily: {
+                        "display": ["Public Sans", "sans-serif"],
+                        "heading": ["Epilogue", "sans-serif"],
+                        "mono": ["JetBrains Mono", "monospace"],
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    boxShadow: {
+                        "soft": "0 2px 8px rgba(0,0,0,0.04)",
+                        "hover": "0 4px 12px rgba(41, 163, 143, 0.08)"
+                    }
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-[#F8F9FA] dark:bg-background-dark text-text-main dark:text-gray-200 font-display antialiased overflow-hidden h-screen flex">
+<!-- Left Sidebar Navigation -->
+<aside class="w-72 bg-white dark:bg-[#1e2428] border-r border-[#e0e6e5] dark:border-gray-800 flex flex-col h-full shrink-0 z-20">
+<!-- Logo Area -->
+<div class="h-16 flex items-center gap-3 px-6 border-b border-[#f1f4f3] dark:border-gray-800">
+<div class="size-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+<span class="material-symbols-outlined text-[20px]">school</span>
+</div>
+<h1 class="text-text-main dark:text-white text-lg font-heading font-bold tracking-tight">UniSched Admin</h1>
+</div>
+<!-- Scrollable Menu -->
+<div class="flex-1 overflow-y-auto p-4 space-y-8">
+<!-- Context Filters: Departments -->
+<div>
+<div class="flex items-center justify-between mb-3 px-2">
+<h3 class="text-xs font-bold text-text-muted uppercase tracking-wider">Departments</h3>
+<button class="text-primary hover:text-primary-dark p-1 rounded hover:bg-subtle-gray dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[16px]">add</span>
+</button>
+</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-medium" href="#">
+<span class="material-symbols-outlined text-[20px] fill-1">domain</span>
+<span class="text-sm">Computer Science</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-main dark:text-gray-400 hover:bg-subtle-gray dark:hover:bg-gray-700 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-text-muted group-hover:text-text-main">science</span>
+<span class="text-sm font-medium">Engineering</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-main dark:text-gray-400 hover:bg-subtle-gray dark:hover:bg-gray-700 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-text-muted group-hover:text-text-main">history_edu</span>
+<span class="text-sm font-medium">Humanities</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-text-main dark:text-gray-400 hover:bg-subtle-gray dark:hover:bg-gray-700 transition-colors group" href="#">
+<span class="material-symbols-outlined text-[20px] text-text-muted group-hover:text-text-main">biotech</span>
+<span class="text-sm font-medium">Life Sciences</span>
+</a>
+</div>
+</div>
+<!-- Context Filters: Semesters -->
+<div>
+<h3 class="text-xs font-bold text-text-muted uppercase tracking-wider mb-3 px-2">Academic Term</h3>
+<div class="space-y-1">
+<label class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-subtle-gray dark:hover:bg-gray-700 rounded-lg transition-colors">
+<input checked="" class="size-4 text-primary bg-transparent border-gray-300 focus:ring-primary" name="semester" type="radio"/>
+<span class="text-sm font-medium text-text-main dark:text-gray-200">Fall 2024</span>
+<span class="ml-auto text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-bold">Current</span>
+</label>
+<label class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-subtle-gray dark:hover:bg-gray-700 rounded-lg transition-colors">
+<input class="size-4 text-primary bg-transparent border-gray-300 focus:ring-primary" name="semester" type="radio"/>
+<span class="text-sm font-medium text-text-main dark:text-gray-200">Spring 2024</span>
+</label>
+<label class="flex items-center gap-3 px-3 py-2 cursor-pointer hover:bg-subtle-gray dark:hover:bg-gray-700 rounded-lg transition-colors">
+<input class="size-4 text-primary bg-transparent border-gray-300 focus:ring-primary" name="semester" type="radio"/>
+<span class="text-sm font-medium text-text-main dark:text-gray-200">Fall 2023</span>
+</label>
+</div>
+</div>
+<!-- System Settings Link -->
+<div class="pt-4 border-t border-[#f1f4f3] dark:border-gray-800">
+<a class="flex items-center gap-3 px-3 py-2 text-text-muted hover:text-text-main transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Global Settings</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col min-w-0 bg-[#F8F9FA] dark:bg-background-dark relative">
+<!-- Top Navigation Bar -->
+<header class="h-16 bg-white dark:bg-[#1e2428] border-b border-[#e0e6e5] dark:border-gray-800 px-8 flex items-center justify-between sticky top-0 z-10">
+<!-- Breadcrumb / Context -->
+<div class="flex items-center text-sm text-text-muted">
+<span class="hover:text-primary cursor-pointer transition-colors">Dashboard</span>
+<span class="material-symbols-outlined text-[16px] mx-2">chevron_right</span>
+<span class="font-medium text-text-main dark:text-white">Teaching Units</span>
+</div>
+<div class="flex items-center gap-6">
+<!-- Notifications -->
+<button class="relative text-text-muted hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 size-2 bg-red-500 rounded-full border-2 border-white dark:border-[#1e2428]"></span>
+</button>
+<!-- Divider -->
+<div class="h-6 w-px bg-[#e0e6e5] dark:bg-gray-700"></div>
+<!-- Profile -->
+<div class="flex items-center gap-3 cursor-pointer group">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-bold text-text-main dark:text-white leading-none group-hover:text-primary transition-colors">Admin User</p>
+<p class="text-xs text-text-muted mt-1">University Registrar</p>
+</div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-transparent group-hover:border-primary transition-all" data-alt="User profile picture of an administrator" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDAEW1svbJx3puynKID_WXINHS0a8nXvSwHmiY93_WwMD3LbaHt7F4JKt4F5VFcej13-I4sq2tj1ghuqgZazTVBwAFo7sfBjlDOhcklwDcrl-6teTpj_5ZywSuXAOhrmthDOZ3tChT5Um-b23tcqCavESpT4QeGq4tc92q-DEsWyufeDwHUfqJ-LWgqGAc51Oz6wAqN8E7FDD1708eysjoEaSpPGYd5Lg2FqHrwb74CSccIL64wS-gXukU8ikmdYOTnzS4fGzv9Wfk");'></div>
+</div>
+</div>
+</header>
+<!-- Scrollable Content Container -->
+<div class="flex-1 overflow-y-auto p-8">
+<div class="max-w-[1200px] mx-auto flex flex-col gap-6">
+<!-- Page Heading & Actions -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-1">
+<h2 class="text-4xl font-heading font-bold text-text-main dark:text-white tracking-tight">Teaching Units (UE)</h2>
+<p class="text-text-muted text-base max-w-2xl">Manage course modules, view assignments, and track coverage across the academic year.</p>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary-dark text-white px-5 py-2.5 rounded-lg shadow-sm shadow-primary/20 transition-all active:scale-95">
+<span class="material-symbols-outlined text-[20px]">add</span>
+<span class="font-bold text-sm tracking-wide">Add New Unit</span>
+</button>
+</div>
+<!-- Toolbar (Search & Filters) -->
+<div class="bg-white dark:bg-[#1e2428] p-1 rounded-xl shadow-soft border border-[#e0e6e5] dark:border-gray-700 flex flex-col md:flex-row items-center gap-2">
+<!-- Search Input -->
+<div class="relative flex-1 w-full md:w-auto">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted material-symbols-outlined">search</span>
+<input class="w-full pl-10 pr-4 py-2.5 bg-transparent border-none focus:ring-0 text-text-main dark:text-white placeholder-text-muted/70 font-medium" placeholder="Search by UE Code, Title or Teacher..." type="text"/>
+</div>
+<div class="h-8 w-px bg-[#e0e6e5] dark:bg-gray-700 hidden md:block"></div>
+<!-- Quick Filters -->
+<div class="flex items-center gap-2 w-full md:w-auto px-2 overflow-x-auto no-scrollbar">
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-subtle-gray dark:hover:bg-gray-700 text-sm font-medium text-text-main dark:text-gray-200 transition-colors whitespace-nowrap">
+<span>Level: All</span>
+<span class="material-symbols-outlined text-[18px] text-text-muted">keyboard_arrow_down</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-subtle-gray dark:hover:bg-gray-700 text-sm font-medium text-text-main dark:text-gray-200 transition-colors whitespace-nowrap">
+<span>Status: Active</span>
+<span class="material-symbols-outlined text-[18px] text-text-muted">keyboard_arrow_down</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 rounded-lg hover:bg-subtle-gray dark:hover:bg-gray-700 text-sm font-medium text-text-main dark:text-gray-200 transition-colors whitespace-nowrap">
+<span>Credits: Any</span>
+<span class="material-symbols-outlined text-[18px] text-text-muted">keyboard_arrow_down</span>
+</button>
+</div>
+<!-- Export Action -->
+<div class="ml-auto pl-2 pr-1 border-l border-[#e0e6e5] dark:border-gray-700 hidden md:block">
+<button class="p-2 text-text-muted hover:text-primary transition-colors tooltip" title="Export CSV">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-white dark:bg-[#1e2428] rounded-xl shadow-soft border border-[#e0e6e5] dark:border-gray-700 overflow-hidden">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="border-b border-[#f1f4f3] dark:border-gray-700 bg-subtle-gray/30 dark:bg-gray-800/30">
+<th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-muted w-32">UE Code</th>
+<th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-muted">Title &amp; Description</th>
+<th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-muted w-48">Lead Teacher</th>
+<th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-muted w-24">Level</th>
+<th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-muted w-24">Credits</th>
+<th class="py-4 px-6 text-xs font-bold uppercase tracking-wider text-text-muted text-right w-28">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#f1f4f3] dark:divide-gray-800">
+<!-- Row 1 -->
+<tr class="group hover:bg-[#F0F4F4] dark:hover:bg-gray-800/50 transition-colors">
+<td class="py-4 px-6 align-top">
+<span class="font-mono text-sm font-bold text-primary bg-primary/10 px-2 py-1 rounded">INF-204</span>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col gap-1">
+<span class="text-sm font-bold text-text-main dark:text-white font-heading">Algorithms &amp; Data Structures</span>
+<span class="text-xs text-text-muted line-clamp-1">Fundamental algorithmic concepts, complexity analysis, trees, graphs.</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="Portrait of Dr. Sarah Chen" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCUANzIiKSogsec-33d8hUfFD7YJoTyOX9oLWyRGTOKrMIewW7uHdfM6s71qVdFxgPfcaG83Wou3iIF7Wp6lRfFxRUFu7Fz2uzS0G2U5o7wDXQve0KY3Eb4cWbrztfsSjnBqD5vki_p-HM9i_AeAdWcMy1VzBckhL3nDYj_DT1I3PQezsXSvgeQjIvyy-6tT-hcK7TJNp4QceQNwTsLam9WxF3FIGhtykS4IfebxOlEYSphEFEX2hWaznx56MjjjRdeEXzULKRbxb4");'></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-text-main dark:text-gray-200">Dr. Chen</span>
+<span class="text-[10px] text-text-muted uppercase">Primary</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                            L2 Bachelor
+                                        </span>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="text-sm font-medium text-text-main dark:text-gray-300">6 ECTS</span>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors" title="Edit">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors" title="View Schedule">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-[#F0F4F4] dark:hover:bg-gray-800/50 transition-colors">
+<td class="py-4 px-6 align-top">
+<span class="font-mono text-sm font-bold text-text-main dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">MAT-101</span>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col gap-1">
+<span class="text-sm font-bold text-text-main dark:text-white font-heading">Calculus I</span>
+<span class="text-xs text-text-muted line-clamp-1">Limits, derivatives, integrals, and infinite series.</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="Portrait of Prof. Alan Turing placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB14yLkOAseSAwIJaMkgyTUzZDfIcLZkFQALsl0I449RRbVA-q2DXOOPwEF-V1ZI8iMgrcSxnVuH9yMiJ1QIk_k576cH2mACNdzJh4UwbRleaHVnyeezvcsZz5EEXasNcqpIUnqNMDIhxyEM4qyj3q8df9TEPg8CCaX4is-JeSOjBX2XZWs3E3LA3E3s4i2KU5JWgJa5kWyC45fTEyH7cZEt2rfWEj3lJSTiajGyolMTmJCqQV2GN2jyL-Y46BfmjLjLVRdr7kAGGg");'></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-text-main dark:text-gray-200">Prof. Miller</span>
+<span class="text-[10px] text-text-muted uppercase">Primary</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-50 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300">
+                                            L1 Bachelor
+                                        </span>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="text-sm font-medium text-text-main dark:text-gray-300">4 ECTS</span>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-[#F0F4F4] dark:hover:bg-gray-800/50 transition-colors">
+<td class="py-4 px-6 align-top">
+<span class="font-mono text-sm font-bold text-text-main dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">SYS-340</span>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col gap-1">
+<span class="text-sm font-bold text-text-main dark:text-white font-heading">Operating Systems</span>
+<span class="text-xs text-text-muted line-clamp-1">Process management, memory management, file systems, I/O.</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary text-xs font-bold">
+                                                JD
+                                            </div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-text-main dark:text-gray-200">J. Doe</span>
+<span class="text-[10px] text-text-muted uppercase">Adjunct</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300">
+                                            L3 Bachelor
+                                        </span>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="text-sm font-medium text-text-main dark:text-gray-300">6 ECTS</span>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-[#F0F4F4] dark:hover:bg-gray-800/50 transition-colors">
+<td class="py-4 px-6 align-top">
+<span class="font-mono text-sm font-bold text-text-main dark:text-gray-300 bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">AI-401</span>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col gap-1">
+<span class="text-sm font-bold text-text-main dark:text-white font-heading">Artificial Intelligence</span>
+<span class="text-xs text-text-muted line-clamp-1">Machine learning basics, neural networks, computer vision.</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="Portrait of Dr. Emily Zhang" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB_3q_Yef6DSDvATwGzyiqtUSVPzCaSrmjhtT1G1x3gc3i3ag1YgoeS2tzhPnB7xSU43Uk340_MQbjb0iF3MQgpTkg8Wvwmw8CJJF0KiAE8CsMlMih-V_j0B4fmn3yJ8df7106g7CyLiFZONVKr2HuQbRIyNWv9BZuK0izlwJCs92CMBH9VRwAUuK5tG7UeYv2cKdQ82nKP_4XKCX2T77V7t_2TqHOv2jBS8oFf8JRzloPmGuNKRgsO7BBD4wNUjwtyQv1tvLpR2eg");'></div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-text-main dark:text-gray-200">Dr. Zhang</span>
+<span class="text-[10px] text-text-muted uppercase">Primary</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                                            M1 Master
+                                        </span>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="text-sm font-medium text-text-main dark:text-gray-300">5 ECTS</span>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">calendar_month</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 5 (Inactive/Archived Example) -->
+<tr class="group hover:bg-[#F0F4F4] dark:hover:bg-gray-800/50 transition-colors opacity-60">
+<td class="py-4 px-6 align-top">
+<span class="font-mono text-sm font-bold text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded">HIS-101</span>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex flex-col gap-1">
+<span class="text-sm font-bold text-text-main dark:text-white font-heading">History of Computing</span>
+<span class="text-xs text-text-muted line-clamp-1"><span class="bg-gray-200 text-gray-700 text-[10px] uppercase font-bold px-1 rounded mr-1">Archived</span> Course retired for 2024.</span>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-gray-200 flex items-center justify-center text-gray-500">
+<span class="material-symbols-outlined text-[16px]">person_off</span>
+</div>
+<div class="flex flex-col">
+<span class="text-sm font-medium text-gray-500">--</span>
+</div>
+</div>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400">
+                                            L1 Bachelor
+                                        </span>
+</td>
+<td class="py-4 px-6 align-top">
+<span class="text-sm font-medium text-gray-500">2 ECTS</span>
+</td>
+<td class="py-4 px-6 align-top text-right">
+<div class="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 text-text-muted hover:text-primary rounded hover:bg-white dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[18px]">restore</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Footer Pagination -->
+<div class="flex items-center justify-between border-t border-[#e0e6e5] dark:border-gray-700 pt-4 pb-8">
+<p class="text-sm text-text-muted">Showing <span class="font-bold text-text-main dark:text-white">1</span> to <span class="font-bold text-text-main dark:text-white">5</span> of <span class="font-bold text-text-main dark:text-white">42</span> entries</p>
+<div class="flex items-center gap-1">
+<button class="px-3 py-1 text-sm font-medium text-text-muted hover:text-text-main disabled:opacity-50" disabled="">Previous</button>
+<button class="size-8 flex items-center justify-center rounded-lg bg-primary text-white text-sm font-bold shadow-sm">1</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-subtle-gray dark:hover:bg-gray-700 text-text-main dark:text-gray-300 text-sm font-medium transition-colors">2</button>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-subtle-gray dark:hover:bg-gray-700 text-text-main dark:text-gray-300 text-sm font-medium transition-colors">3</button>
+<span class="px-1 text-text-muted">...</span>
+<button class="size-8 flex items-center justify-center rounded-lg hover:bg-subtle-gray dark:hover:bg-gray-700 text-text-main dark:text-gray-300 text-sm font-medium transition-colors">8</button>
+<button class="px-3 py-1 text-sm font-medium text-text-muted hover:text-text-main">Next</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>
