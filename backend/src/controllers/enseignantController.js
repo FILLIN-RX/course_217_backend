@@ -1,7 +1,7 @@
-const db = require('../config/db');
+import db from '../config/db.js';
 
 // ----------------- SOUMISSION DES DISPONIBILITÉS ----------------- //
-exports.submitDisponibilite = async (req, res) => {
+export const submitDisponibilite = async (req, res) => {
     const enseignant_id = req.user.role === 'ENSEIGNANT' ? req.user.enseignant_id : null;
     const { plage_id, prefere } = req.body;
 
@@ -9,14 +9,14 @@ exports.submitDisponibilite = async (req, res) => {
 
     try {
         // Vérifie si la disponibilité existe déjà
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             "SELECT * FROM disponibilites_enseignants WHERE enseignant_id=? AND plage_id=?",
             [enseignant_id, plage_id]
         );
 
         if (rows.length > 0) {
             // Mise à jour si déjà existante
-            await db.promise().query(
+            await db.query(
                 "UPDATE disponibilites_enseignants SET prefere=? WHERE id=?",
                 [prefere, rows[0].id]
             );
@@ -24,7 +24,7 @@ exports.submitDisponibilite = async (req, res) => {
         }
 
         // Sinon, insertion
-        await db.promise().query(
+        await db.query(
             "INSERT INTO disponibilites_enseignants (enseignant_id, plage_id, prefere) VALUES (?, ?, ?)",
             [enseignant_id, plage_id, prefere]
         );
@@ -36,7 +36,7 @@ exports.submitDisponibilite = async (req, res) => {
 };
 
 // ----------------- MODIFICATION DES DISPONIBILITÉS ----------------- //
-exports.updateDisponibilite = async (req, res) => {
+export const updateDisponibilite = async (req, res) => {
     const enseignant_id = req.user.role === 'ENSEIGNANT' ? req.user.enseignant_id : null;
     const { plage_id, prefere } = req.body;
 
@@ -63,7 +63,7 @@ exports.updateDisponibilite = async (req, res) => {
 };
 
 // ----------------- CONSULTATION EMPLOI DU TEMPS ----------------- //
-exports.getEmploiDuTempsDetail = async (req, res) => {
+export const getEmploiDuTempsDetail = async (req, res) => {
     const enseignant_id = req.user.role === 'ENSEIGNANT' ? req.user.enseignant_id : null;
 
     if (!enseignant_id) return res.status(403).json({ message: "Accès refusé" });
@@ -101,4 +101,3 @@ exports.getEmploiDuTempsDetail = async (req, res) => {
         res.status(500).json({ message: "Erreur serveur" });
     }
 };
-

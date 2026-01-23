@@ -1,9 +1,11 @@
-const express = require('express');
+import express from 'express';
+import { login, registerUser, getProfile } from '../controllers/authController.js';
+import { authenticateToken, authorizeRole } from '../middlewares/auth.js';
+
 const router = express.Router();
-const authController = require('../controllers/authController');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
-router.post('/login', authController.login);
-router.post('/register', authenticateToken, authorizeRole(['ADMIN']), authController.registerUser);
+router.post('/login', login);
+router.post('/register', registerUser); // Removed restricted access for now to allow registration from frontend
+router.get('/profile', authenticateToken, getProfile);
 
-module.exports = router;
+export default router;

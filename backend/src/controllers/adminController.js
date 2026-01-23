@@ -63,13 +63,13 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
 
     try {
         // 1️⃣ Récupérer toutes les UE de la classe
-        const [ues] = await db.promise().query(
+        const [ues] = await db.query(
             "SELECT * FROM ues WHERE classe_id=?",
             [classe_id]
         );
 
         // 2️⃣ Récupérer l'effectif
-        const [effectifRows] = await db.promise().query(
+        const [effectifRows] = await db.query(
             "SELECT effectif FROM effectifs_classe WHERE classe_id=? AND semestre_id=? AND annee_id=?",
             [classe_id, semestre_id, annee_id]
         );
@@ -77,13 +77,13 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
         const effectif = effectifRows[0].effectif;
 
         // 3️⃣ Récupérer toutes les salles disponibles
-        const [salles] = await db.promise().query(
+        const [salles] = await db.query(
             "SELECT * FROM salles WHERE capacite>=?",
             [effectif]
         );
 
         // 4️⃣ Récupérer toutes les plages horaires
-        const [plages] = await db.promise().query(
+        const [plages] = await db.query(
             "SELECT * FROM plages_horaires ORDER BY FIELD(jour,'Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'), heure_debut"
         );
 
@@ -94,7 +94,7 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
             let affecte = false;
 
             // 5a. Récupérer les disponibilités préférées de l’enseignant
-            const [prefs] = await db.promise().query(
+            const [prefs] = await db.query(
                 "SELECT plage_id FROM disponibilites_enseignants WHERE enseignant_id=? AND prefere=1",
                 [ue.enseignant_id]
             );
@@ -106,28 +106,28 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
             for (const plageId of allPlages) {
                 for (const salle of salles) {
                     // Vérifier si salle libre pour cette plage
-                    const [checkSalle] = await db.promise().query(
+                    const [checkSalle] = await db.query(
                         "SELECT * FROM emplois_du_temps WHERE salle_id=? AND plage_id=? AND semestre_id=? AND annee_id=?",
                         [salle.id, plageId, semestre_id, annee_id]
                     );
                     if (checkSalle.length > 0) continue;
 
                     // Vérifier si UE déjà programmée sur cette plage
-                    const [checkUE] = await db.promise().query(
+                    const [checkUE] = await db.query(
                         "SELECT * FROM emplois_du_temps WHERE ue_id=? AND plage_id=? AND semestre_id=? AND annee_id=?",
                         [ue.id, plageId, semestre_id, annee_id]
                     );
                     if (checkUE.length > 0) continue;
 
                     // Vérifier disponibilité enseignant
-                    const [disp] = await db.promise().query(
+                    const [disp] = await db.query(
                         "SELECT * FROM disponibilites_enseignants WHERE enseignant_id=? AND plage_id=?",
                         [ue.enseignant_id, plageId]
                     );
                     if (disp.length === 0) continue;
 
                     // Tout est ok → insérer dans emplois_du_temps
-                    await db.promise().query(
+                    await db.query(
                         `INSERT INTO emplois_du_temps (ue_id, salle_id, plage_id, semestre_id, annee_id, statut)
                          VALUES (?, ?, ?, ?, ?, 'BROUILLON')`,
                         [ue.id, salle.id, plageId, semestre_id, annee_id]
@@ -155,7 +155,7 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
 
 export const validerEmploiDuTemps = async (req, res) => {
     try {
-        await db.promise().query("UPDATE emplois_du_temps SET statut='VALIDE' WHERE statut='BROUILLON'");
+        await db.query("UPDATE emplois_du_temps SET statut='VALIDE' WHERE statut='BROUILLON'");
         res.json({ message: "Emplois du temps validés" });
     } catch (err) {
         console.error(err);
