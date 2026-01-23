@@ -1,6 +1,6 @@
 import db from "../config/db.js";
 
-exports.seedFilieres = async () => {
+export const seedFilieres = async () => {
     try {
         // 1. Vérifier si la table est vide
         const [existing] = await db.promise().query("SELECT COUNT(*) as total FROM filieres");
@@ -36,7 +36,7 @@ exports.seedFilieres = async () => {
     }
 };
 
-exports.getFilieres = async (req, res) => {
+export const getFilieres = async (req, res) => {
     try {
         const query = `
             SELECT f.id, f.nom as filiere_nom, d.nom as departement_nom 

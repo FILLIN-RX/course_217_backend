@@ -1,28 +1,28 @@
-const express = require('express');
-const router = express.Router();
-const adminController = require('../controllers/adminController');
+import express from 'express';
+import * as adminController from '../controllers/adminController.js';
 import {createClasse, getClasses, updateClasse, deleteClasse} from '../controllers/classe.controller.js';
 import {createEnseignant, getEnseignants, updateEnseignant, deleteEnseignant} from '../controllers/enseignant.controller.js';
-import {createFiliere, getFilieres, updateFiliere, deleteFiliere} from '../controllers/Filier.controller.js';
-import {getDepartements} from '../controllers/adminController.js';
+import { getFilieres} from '../controllers/Filier.controller.js';
 import { getUEs} from '../controllers/ue.controller.js';
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
+import { authenticateToken, authorizeRole } from '../middlewares/auth.js';
+
+const router = express.Router();
 
 // --- Département
 router.get('/departements', authenticateToken, authorizeRole(['ADMIN']), adminController.getDepartements);
 
 
 
-router.get('/filieres', authenticateToken, authorizeRole(['ADMIN']), adminController.getFilieres);
+router.get('/filieres', authenticateToken, authorizeRole(['ADMIN']), getFilieres);
 
 // --- Enseignants ---
-router.post('/enseignants', authenticateToken, authorizeRole(['ADMIN']), adminController.createEnseignant);
-router.get('/enseignants', authenticateToken, authorizeRole(['ADMIN']), adminController.getEnseignants);
-router.put('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), adminController.updateEnseignant);
-router.delete('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), adminController.deleteEnseignant);
+router.post('/enseignants', authenticateToken, authorizeRole(['ADMIN']), createEnseignant);
+router.get('/enseignants', authenticateToken, authorizeRole(['ADMIN']), getEnseignants);
+router.put('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), updateEnseignant);
+router.delete('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), deleteEnseignant);
 
 
-router.get('/ues', authenticateToken, authorizeRole(['ADMIN']), adminController.getUEs);
+router.get('/ues', authenticateToken, authorizeRole(['ADMIN']), getUEs);
 
 
 // --- Salles ---
@@ -36,4 +36,4 @@ router.post('/emplois-du-temps/valider', authenticateToken, authorizeRole(['ADMI
 router.post('/emplois-du-temps/generer-optimise', authenticateToken, authorizeRole(['ADMIN']), adminController.genererEmploiDuTempsOptimise);
 
 
-module.exports = router;
+export default router;

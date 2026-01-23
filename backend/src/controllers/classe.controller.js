@@ -2,7 +2,7 @@
 import db from "../config/db.js";
 
 // ------------------------ CLASSES ------------------------ //
-exports.createClasse = async (req, res) => {
+export const createClasse = async (req, res) => {
     const { nom, filiere_id } = req.body;
     try {
         const [result] = await db.promise().query(
@@ -16,7 +16,7 @@ exports.createClasse = async (req, res) => {
     }
 };
 
-exports.getClasses = async (req, res) => {
+export const getClasses = async (req, res) => {
     try {
         const [rows] = await db.promise().query("SELECT * FROM classes");
         res.json(rows);
@@ -26,7 +26,7 @@ exports.getClasses = async (req, res) => {
     }
 };
 
-exports.updateClasse = async (req, res) => {
+export const updateClasse = async (req, res) => {
     const { id } = req.params;
     const { nom, filiere_id } = req.body;
     try {
@@ -41,7 +41,7 @@ exports.updateClasse = async (req, res) => {
     }
 };
 
-exports.deleteClasse = async (req, res) => {
+export const deleteClasse = async (req, res) => {
     const { id } = req.params;
     try {
         await db.promise().query("DELETE FROM classes WHERE id=?", [id]);

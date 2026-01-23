@@ -1,4 +1,6 @@
-exports.seedUEs = async () => {
+import db from "../config/db.js";
+
+export const seedUEs = async () => {
     try {
         const [rows] = await db.promise().query("SELECT COUNT(*) as total FROM ues");
         
@@ -25,7 +27,7 @@ exports.seedUEs = async () => {
     }
 };
 
-exports.getUEs = async (req, res) => {
+export const getUEs = async (req, res) => {
     try {
         // Sélectionne toutes les colonnes, triées par nom d'UE
         const [rows] = await db.promise().query(

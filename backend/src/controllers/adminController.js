@@ -1,7 +1,7 @@
-const db = require('../config/db');
+import db from '../config/db.js';
 
 // Fonction pour remplir la DB au démarrage
-exports.seedDepartements = async () => {
+export const seedDepartements = async () => {
     try {
         // On vérifie si la table est vide
         const [rows] = await db.promise().query("SELECT COUNT(*) as total FROM departements");
@@ -31,7 +31,7 @@ exports.seedDepartements = async () => {
 };
 
 // Lire tous les départements (Triés par date de création)
-exports.getDepartements = async (req, res) => {
+export const getDepartements = async (req, res) => {
     try {
         const [rows] = await db.promise().query(
             "SELECT id, nom, created_at FROM departements ORDER BY created_at DESC"
@@ -58,7 +58,7 @@ exports.getDepartements = async (req, res) => {
 
 
 
-exports.genererEmploiDuTempsOptimise = async (req, res) => {
+export const genererEmploiDuTempsOptimise = async (req, res) => {
     const { classe_id, semestre_id, annee_id } = req.body;
 
     try {
@@ -147,6 +147,16 @@ exports.genererEmploiDuTempsOptimise = async (req, res) => {
             ueNonAffectees: ueNonAffectees.length ? ueNonAffectees : "Toutes les UEs ont été affectées"
         });
 
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+export const validerEmploiDuTemps = async (req, res) => {
+    try {
+        await db.promise().query("UPDATE emplois_du_temps SET statut='VALIDE' WHERE statut='BROUILLON'");
+        res.json({ message: "Emplois du temps validés" });
     } catch (err) {
         console.error(err);
         res.status(500).json({ message: "Erreur serveur" });

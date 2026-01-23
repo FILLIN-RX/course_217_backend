@@ -1,6 +1,6 @@
 import db from "../config/db.js";
 // ------------------------ ENSEIGNANTS ------------------------ //
-exports.createEnseignant = async (req, res) => {
+export const createEnseignant = async (req, res) => {
     const { nom, email } = req.body;
     try {
         const [result] = await db.promise().query(
@@ -14,7 +14,7 @@ exports.createEnseignant = async (req, res) => {
     }
 };
 
-exports.getEnseignants = async (req, res) => {
+export const getEnseignants = async (req, res) => {
     try {
         const [rows] = await db.promise().query("SELECT * FROM enseignants");
         res.json(rows);
@@ -24,7 +24,7 @@ exports.getEnseignants = async (req, res) => {
     }
 };
 
-exports.updateEnseignant = async (req, res) => {
+export const updateEnseignant = async (req, res) => {
     const { id } = req.params;
     const { nom, email } = req.body;
     try {
@@ -39,7 +39,7 @@ exports.updateEnseignant = async (req, res) => {
     }
 };
 
-exports.deleteEnseignant = async (req, res) => {
+export const deleteEnseignant = async (req, res) => {
     const { id } = req.params;
     try {
         await db.promise().query("DELETE FROM enseignants WHERE id=?", [id]);
