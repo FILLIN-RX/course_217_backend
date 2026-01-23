@@ -2,7 +2,7 @@ import db from "../config/db.js";
 
 export const seedUEs = async () => {
     try {
-        const [rows] = await db.promise().query("SELECT COUNT(*) as total FROM ues");
+        const [rows] = await db.query("SELECT COUNT(*) as total FROM ues");
         
         if (rows[0].total === 0) {
             console.log("🌱 Seeding des Unités d'Enseignement (UE)...");
@@ -16,7 +16,7 @@ export const seedUEs = async () => {
             ];
 
             const sql = "INSERT INTO ues (code, intitule) VALUES ?";
-            await db.promise().query(sql, [uesAInserer]);
+            await db.query(sql, [uesAInserer]);
 
             console.log("✅ UEs insérées avec succès !");
         } else {
@@ -30,7 +30,7 @@ export const seedUEs = async () => {
 export const getUEs = async (req, res) => {
     try {
         // Sélectionne toutes les colonnes, triées par nom d'UE
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             "SELECT id, code, intitule FROM ues ORDER BY intitule ASC"
         );
         

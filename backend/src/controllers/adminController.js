@@ -4,7 +4,7 @@ import db from '../config/db.js';
 export const seedDepartements = async () => {
     try {
         // On vérifie si la table est vide
-        const [rows] = await db.promise().query("SELECT COUNT(*) as total FROM departements");
+        const [rows] = await db.query("SELECT COUNT(*) as total FROM departements");
         
         if (rows[0].total === 0) {
             console.log("🌱 Table 'departements' vide. Début du seeding...");
@@ -19,7 +19,7 @@ export const seedDepartements = async () => {
 
             // MySQL attend un tableau de tableaux pour l'insertion multiple
             const sql = "INSERT INTO departements (nom) VALUES ?";
-            await db.promise().query(sql, [departementsAInserer]);
+            await db.query(sql, [departementsAInserer]);
 
             console.log("✅ Données initiales insérées avec succès !");
         } else {
@@ -33,7 +33,7 @@ export const seedDepartements = async () => {
 // Lire tous les départements (Triés par date de création)
 export const getDepartements = async (req, res) => {
     try {
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             "SELECT id, nom, created_at FROM departements ORDER BY created_at DESC"
         );
         

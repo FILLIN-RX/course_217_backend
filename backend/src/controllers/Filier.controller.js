@@ -3,13 +3,13 @@ import db from "../config/db.js";
 export const seedFilieres = async () => {
     try {
         // 1. Vérifier si la table est vide
-        const [existing] = await db.promise().query("SELECT COUNT(*) as total FROM filieres");
+        const [existing] = await db.query("SELECT COUNT(*) as total FROM filieres");
         
         if (existing[0].total === 0) {
             console.log("🌱 Seeding des filières...");
 
             // 2. Récupérer l'ID d'un département pour la cohérence (ex: Informatique)
-            const [deps] = await db.promise().query("SELECT id FROM departements WHERE nom = 'Informatique' LIMIT 1");
+            const [deps] = await db.query("SELECT id FROM departements WHERE nom = 'Informatique' LIMIT 1");
             
             // Si le département n'existe pas, on prend le premier disponible
             const depId = deps.length > 0 ? deps[0].id : 1;
@@ -43,7 +43,7 @@ export const getFilieres = async (req, res) => {
             FROM filieres f
             INNER JOIN departements d ON f.departement_id = d.id
         `;
-        const [rows] = await db.promise().query(query);
+        const [rows] = await db.query(query);
         res.json(rows);
     } catch (err) {
         console.error(err);

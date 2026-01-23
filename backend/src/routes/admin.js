@@ -9,11 +9,11 @@ import { authenticateToken, authorizeRole } from '../middlewares/auth.js';
 const router = express.Router();
 
 // --- Département
-router.get('/departements', authenticateToken, authorizeRole(['ADMIN']), adminController.getDepartements);
+router.get('/departements', adminController.getDepartements);
 
 
 
-router.get('/filieres', authenticateToken, authorizeRole(['ADMIN']), getFilieres);
+router.get('/filieres', getFilieres);
 
 // --- Enseignants ---
 router.post('/enseignants', authenticateToken, authorizeRole(['ADMIN']), createEnseignant);
@@ -22,7 +22,7 @@ router.put('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), upda
 router.delete('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), deleteEnseignant);
 
 
-router.get('/ues', authenticateToken, authorizeRole(['ADMIN']), getUEs);
+router.get('/ues', getUEs);
 
 
 // --- Salles ---

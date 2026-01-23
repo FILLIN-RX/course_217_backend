@@ -43,14 +43,14 @@ exports.updateDisponibilite = async (req, res) => {
     if (!enseignant_id) return res.status(403).json({ message: "Accès refusé" });
 
     try {
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             "SELECT * FROM disponibilites_enseignants WHERE enseignant_id=? AND plage_id=?",
             [enseignant_id, plage_id]
         );
 
         if (rows.length === 0) return res.status(404).json({ message: "Disponibilité non trouvée" });
 
-        await db.promise().query(
+        await db.query(
             "UPDATE disponibilites_enseignants SET prefere=? WHERE id=?",
             [prefere, rows[0].id]
         );
@@ -69,7 +69,7 @@ exports.getEmploiDuTempsDetail = async (req, res) => {
     if (!enseignant_id) return res.status(403).json({ message: "Accès refusé" });
 
     try {
-        const [rows] = await db.promise().query(
+        const [rows] = await db.query(
             `SELECT et.id AS emploi_id,
                     u.code AS ue_code,
                     u.intitule AS ue_intitule,
