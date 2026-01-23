@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSched | Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <link rel="stylesheet" href="css/global.css">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+        }
+        body {
+            background-color: var(--bg-light);
+            display: flex;
+            min-height: 100vh;
+        }
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, var(--primary) 0%, #051b17 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            padding: 2.5rem;
+            max-width: calc(100vw - var(--sidebar-width));
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.25rem;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            transform: translateX(4px);
+        }
+        .nav-link.active {
+            background: var(--primary-light);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .stat-card {
+            background: white;
+            border-radius: 1.25rem;
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+    </style>
+</head>
+<body class="animate-fade-in">
+
+    <!-- Sidebar -->
+    <aside class="sidebar shadow-2xl">
+        <div class="flex items-center gap-3 mb-10 px-2">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/10">
+                <span class="material-symbols-outlined text-white">school</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">UniSched</h1>
+                <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold">Admin Portal</p>
+            </div>
+        </div>
+
+        <nav class="space-y-2 flex-grow">
+            <a href="admin-dashboard.html" class="nav-link active">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="master-schedule.html" class="nav-link">
+                <span class="material-symbols-outlined">calendar_month</span>
+                <span>Master Schedule</span>
+            </a>
+            <a href="admin-rooms.html" class="nav-link">
+                <span class="material-symbols-outlined">meeting_room</span>
+                <span>Rooms</span>
+            </a>
+            <a href="admin-teachers.html" class="nav-link">
+                <span class="material-symbols-outlined">group</span>
+                <span>Teachers</span>
+            </a>
+            <a href="teaching-units.html" class="nav-link">
+                <span class="material-symbols-outlined">menu_book</span>
+                <span>Teaching Units</span>
+            </a>
+            <a href="validation-panel.html" class="nav-link">
+                <span class="material-symbols-outlined">task_alt</span>
+                <span>Validation</span>
+            </a>
+        </nav>
+
+        <div class="pt-6 border-t border-white/10">
+            <div class="flex items-center gap-3 px-2 py-3 bg-white/5 rounded-xl border border-white/5 mb-4">
+                <div class="w-10 h-10 bg-yellow-500 rounded-full flex items-center justify-center text-primary font-bold shadow-inner" id="user-initials">AD</div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-bold truncate" id="user-name">Admin User</p>
+                    <p class="text-[10px] text-white/40 truncate" id="user-email">admin@univ.edu</p>
+                </div>
+            </div>
+            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-2 text-white/60 hover:text-white transition-colors text-sm">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 tracking-tight">System Overview</h2>
+                <p class="text-gray-500 mt-1">Academic Year 2025/2026 - First Semester</p>
+            </div>
+            <div class="flex gap-4">
+                <button class="bg-white px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold text-gray-700 shadow-sm hover:bg-gray-50 transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">settings</span>
+                    <span>Configuration</span>
+                </button>
+                <button class="bg-primary px-5 py-2.5 rounded-xl text-white text-sm font-semibold shadow-lg hover:shadow-primary/20 hover:scale-[1.02] transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined text-lg">add</span>
+                    <span>New Entity</span>
+                </button>
+            </div>
+        </header>
+
+        <!-- Stats Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
+            <div class="stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Rooms</p>
+                    <span class="p-2 bg-emerald-50 text-emerald-600 rounded-lg material-symbols-outlined">meeting_room</span>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-900" id="stat-rooms">24</h3>
+                <p class="text-xs text-gray-400 mt-2 font-medium">95% Occupancy Rate</p>
+            </div>
+            <div class="stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Total Teachers</p>
+                    <span class="p-2 bg-blue-50 text-blue-600 rounded-lg material-symbols-outlined">group</span>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-900" id="stat-teachers">128</h3>
+                <p class="text-xs text-gray-400 mt-2 font-medium">8 Pending preferences</p>
+            </div>
+            <div class="stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Schedule Status</p>
+                    <span class="p-2 bg-amber-50 text-amber-600 rounded-lg material-symbols-outlined">pending_actions</span>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-900">45%</h3>
+                <p class="text-xs text-gray-400 mt-2 font-medium">Drafting in progress</p>
+            </div>
+            <div class="stat-card">
+                <div class="flex justify-between items-start mb-4">
+                    <p class="text-sm font-bold text-gray-500 uppercase tracking-wider">Audit Logs</p>
+                    <span class="p-2 bg-purple-50 text-purple-600 rounded-lg material-symbols-outlined">history</span>
+                </div>
+                <h3 class="text-3xl font-bold text-gray-900">12</h3>
+                <p class="text-xs text-gray-400 mt-2 font-medium">New activities today</p>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Recent Activity -->
+            <div class="lg:col-span-2 glass-card p-8">
+                <div class="flex justify-between items-center mb-8">
+                    <h3 class="text-xl font-bold text-gray-900">Recent Audit Logs</h3>
+                    <button class="text-primary-light font-bold text-sm hover:underline">View All</button>
+                </div>
+                <div class="space-y-6" id="audit-list">
+                    <!-- Sample entry -->
+                    <div class="flex gap-4">
+                        <div class="w-10 h-10 rounded-full bg-emerald-100 flex items-center justify-center shrink-0">
+                            <span class="material-symbols-outlined text-emerald-600">edit_calendar</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-bold text-gray-900">Schedule Updated</p>
+                            <p class="text-xs text-gray-500">Admin Doe modified room allocation for UE: INF101</p>
+                            <p class="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest leading-none">2 hours ago</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Notifications / Alerter -->
+            <div class="glass-card p-8 bg-white/40 shadow-xl border-emerald-100">
+                <div class="flex items-center gap-2 mb-8">
+                    <span class="relative flex h-3 w-3">
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                    </span>
+                    <h3 class="text-xl font-bold text-gray-900">Critical Alerts</h3>
+                </div>
+                <div class="space-y-4" id="alerts-list">
+                    <div class="p-4 bg-rose-50 border border-rose-100 rounded-xl relative overflow-hidden group">
+                        <div class="relative z-10">
+                            <h4 class="text-sm font-bold text-rose-900">Room Conflict Detected</h4>
+                            <p class="text-xs text-rose-700 mt-1">Lecture Hall A is double booked on Monday 08:00.</p>
+                            <button class="mt-3 text-xs font-bold text-rose-900 underline decoration-rose-300">Resolve Now</button>
+                        </div>
+                        <span class="material-symbols-outlined absolute -right-4 -bottom-4 text-7xl text-rose-200/50 group-hover:scale-110 transition-transform">warning</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { api } from './js/api.js';
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user || user.role !== 'ADMIN') {
+                window.location.href = 'admin-login.html';
+                return;
+            }
+
+            document.getElementById('user-name').innerText = user.nom;
+            document.getElementById('user-initials').innerText = user.nom.split(' ').map(n=>n[0]).join('').toUpperCase();
+
+            // Fetch basic stats
+            try {
+                const rooms = await api.get('/admin/salles');
+                document.getElementById('stat-rooms').innerText = rooms.length;
+                const teachers = await api.get('/admin/enseignants');
+                document.getElementById('stat-teachers').innerText = teachers.length;
+            } catch (err) {
+                console.error("Failed to load stats");
+            }
+
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.clear();
+                window.location.href = 'admin-login.html';
+            });
+        });
+    </script>
+</body>
+</html>

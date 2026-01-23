@@ -1,0 +1,174 @@
+import db from '../config/db.js';
+import { logAction } from '../services/audit.service.js';
+
+// --- Departements ---
+export const getDepartements = async (req, res) => {
+    try {
+        const [rows] = await db.query("SELECT * FROM departements ORDER BY nom ASC");
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// --- Scheduling Logic ---
+
+/**
+ * Generate an optimized schedule for a class, semester, and academic year.
+ * Takes into account room capacity vs class effectif, and teacher preferences.
+ */
+export const genererEmploiDuTempsOptimise = async (req, res) => {
+    const { classe_id, semestre_id, annee_id } = req.body;
+    const userId = req.user.id;
+
+    try {
+        // 1. Get Class Effectif
+        const [effectifRows] = await db.query(
+            "SELECT effectif FROM effectifs_classe WHERE classe_id=? AND semestre_id=? AND annee_id=?",
+            [classe_id, semestre_id, annee_id]
+        );
+        if (effectifRows.length === 0) {
+            return res.status(400).json({ message: "Effectif non défini pour cette classe/semestre/année." });
+        }
+        const classEffectif = effectifRows[0].effectif;
+
+        // 2. Get UEs for this class and semester
+        const [ues] = await db.query(
+            "SELECT * FROM ues WHERE classe_id=? AND semestre_id=?",
+            [classe_id, semestre_id]
+        );
+
+        // 3. Get all Rooms with enough capacity
+        const [salles] = await db.query(
+            "SELECT * FROM salles WHERE capacite >= ? ORDER BY capacite ASC",
+            [classEffectif]
+        );
+
+        if (salles.length === 0) {
+            return res.status(400).json({ message: "Aucune salle disponible pour accueillir cet effectif." });
+        }
+
+        // 4. Get all Time Slots
+        const [plages] = await db.query("SELECT * FROM plages_horaires ORDER BY FIELD(jour,'Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'), heure_debut");
+
+        let nonAffectees = [];
+
+        // 5. Algorithm: Iterative placement
+        for (const ue of ues) {
+            let affecte = false;
+
+            // Get Teacher Preferences for this UE's teacher
+            const [prefs] = await db.query(
+                "SELECT plage_id FROM disponibilites_enseignants WHERE enseignant_id=? AND prefere=1",
+                [ue.enseignant_id]
+            );
+            const prefPlageIds = prefs.map(p => p.plage_id);
+
+            // Sort plages: preferences first, then others
+            const sortedPlages = [
+                ...plages.filter(p => prefPlageIds.includes(p.id)),
+                ...plages.filter(p => !prefPlageIds.includes(p.id))
+            ];
+
+            for (const plage of sortedPlages) {
+                for (const salle of salles) {
+                    // Check if salle is busy at this slot
+                    const [busySalle] = await db.query(
+                        "SELECT id FROM emplois_du_temps WHERE salle_id=? AND plage_id=? AND semestre_id=? AND annee_id=?",
+                        [salle.id, plage.id, semestre_id, annee_id]
+                    );
+                    if (busySalle.length > 0) continue;
+
+                    // Check if teacher is busy at this slot
+                    const [busyTeacher] = await db.query(
+                        "SELECT et.id FROM emplois_du_temps et JOIN ues u ON et.ue_id = u.id WHERE u.enseignant_id=? AND et.plage_id=? AND et.semestre_id=? AND et.annee_id=?",
+                        [ue.enseignant_id, plage.id, semestre_id, annee_id]
+                    );
+                    if (busyTeacher.length > 0) continue;
+
+                    // Check if teacher is available (not just preferred)
+                    const [isAvailable] = await db.query(
+                        "SELECT id FROM disponibilites_enseignants WHERE enseignant_id=? AND plage_id=?",
+                        [ue.enseignant_id, plage.id]
+                    );
+                    // If teachers must explicitly submit availability, check this. 
+                    // If no entry means unavailable, then:
+                    if (isAvailable.length === 0) continue; 
+
+                    // Place the UE
+                    const [insert] = await db.query(
+                        "INSERT INTO emplois_du_temps (ue_id, salle_id, plage_id, semestre_id, annee_id, statut) VALUES (?, ?, ?, ?, ?, 'BROUILLON')",
+                        [ue.id, salle.id, plage.id, semestre_id, annee_id]
+                    );
+
+                    await logAction('PLACEMENT_AUTO', 'emplois_du_temps', insert.insertId, userId, null, { ue_id: ue.id, salle_id: salle.id, plage_id: plage.id });
+
+                    affecte = true;
+                    break;
+                }
+                if (affecte) break;
+            }
+
+            if (!affecte) {
+                nonAffectees.push(`${ue.code} - ${ue.intitule}`);
+            }
+        }
+
+        // Check if schedule is complete
+        const [totalUEs] = await db.query("SELECT COUNT(*) as count FROM ues WHERE classe_id=? AND semestre_id=?", [classe_id, semestre_id]);
+        const [scheduledUEs] = await db.query("SELECT COUNT(*) as count FROM emplois_du_temps WHERE ue_id IN (SELECT id FROM ues WHERE classe_id=? AND semestre_id=?) AND semestre_id=? AND annee_id=?", [classe_id, semestre_id, semestre_id, annee_id]);
+
+        const isComplete = totalUEs[0].count === scheduledUEs[0].count;
+
+        res.json({
+            message: isComplete ? "Emploi du temps généré avec succès !" : "Génération partielle terminée.",
+            isComplete,
+            nonAffectees
+        });
+
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: "Erreur lors de la génération de l'emploi du temps." });
+    }
+};
+
+// --- Validation ---
+export const validerEmploiDuTemps = async (req, res) => {
+    const { classe_id, semestre_id, annee_id } = req.body;
+    const userId = req.user.id;
+
+    try {
+        await db.query(
+            "UPDATE emplois_du_temps SET statut='VALIDE' WHERE ue_id IN (SELECT id FROM ues WHERE classe_id=?) AND semestre_id=? AND annee_id=?",
+            [classe_id, semestre_id, annee_id]
+        );
+        
+        await logAction('VALIDATION_GLOBALE', 'emplois_du_temps', null, userId, { statut: 'BROUILLON' }, { statut: 'VALIDE' });
+
+        res.json({ message: "L'emploi du temps a été validé et publié." });
+    } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// --- CRUD Salles ---
+export const getSalles = async (req, res) => {
+    try {
+        const [rows] = await db.query("SELECT * FROM salles ORDER BY nom ASC");
+        res.json(rows);
+    } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+export const createSalle = async (req, res) => {
+    const { nom, capacite } = req.body;
+    try {
+        const [result] = await db.query("INSERT INTO salles (nom, capacite) VALUES (?, ?)", [nom, capacite]);
+        res.status(201).json({ id: result.insertId, nom, capacite });
+    } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// Add other CRUDs similarly...

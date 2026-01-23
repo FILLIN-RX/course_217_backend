@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSched | Validation Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <link rel="stylesheet" href="css/global.css">
+    <style>
+        :root { --sidebar-width: 280px; }
+        body { background-color: var(--bg-light); display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background: linear-gradient(180deg, var(--primary) 0%, #051b17 100%); color: white; padding: 2rem 1.5rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 50; }
+        .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 2.5rem; max-width: calc(100vw - var(--sidebar-width)); }
+        .nav-link { display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1.25rem; border-radius: 0.75rem; transition: all 0.2s; color: rgba(255, 255, 255, 0.7); font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-link.active { background: var(--primary-light); }
+        .glass-card { background: white; border-radius: 1.25rem; padding: 2rem; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="animate-fade-in">
+    <aside class="sidebar">
+        <div class="flex items-center gap-3 mb-10 px-2">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/10">
+                <span class="material-symbols-outlined text-white">school</span>
+            </div>
+            <div><h1 class="text-xl font-bold">UniSched</h1><p class="text-[10px] uppercase text-white/40">Admin Portal</p></div>
+        </div>
+        <nav class="space-y-2 flex-grow">
+            <a href="admin-dashboard.html" class="nav-link"><span class="material-symbols-outlined">dashboard</span><span>Dashboard</span></a>
+            <a href="master-schedule.html" class="nav-link"><span class="material-symbols-outlined">calendar_month</span><span>Master Schedule</span></a>
+            <a href="admin-rooms.html" class="nav-link"><span class="material-symbols-outlined">meeting_room</span><span>Rooms</span></a>
+            <a href="admin-teachers.html" class="nav-link"><span class="material-symbols-outlined">group</span><span>Teachers</span></a>
+            <a href="validation-panel.html" class="nav-link active"><span class="material-symbols-outlined">task_alt</span><span>Validation</span></a>
+        </nav>
+    </aside>
+
+    <main class="main-content text-center py-20">
+        <div class="max-w-2xl mx-auto glass-card">
+            <div class="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6 text-emerald-600">
+                <span class="material-symbols-outlined text-4xl">verified</span>
+            </div>
+            <h2 class="text-3xl font-bold text-gray-900 mb-4">Finalize Schedule</h2>
+            <p class="text-gray-500 mb-10 leading-relaxed">By validating the schedule, you will publish it to all teachers and students. This action will lock further modifications for the current period.</p>
+            
+            <div class="space-y-4 mb-10">
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl">
+                    <span class="text-sm font-semibold text-gray-600">Total UEs Scheduled</span>
+                    <span class="text-lg font-bold text-gray-900">124 / 125</span>
+                </div>
+                <div class="flex justify-between items-center bg-gray-50 p-4 rounded-xl">
+                    <span class="text-sm font-semibold text-gray-600">Conflicts Detected</span>
+                    <span class="text-lg font-bold text-rose-600">0</span>
+                </div>
+            </div>
+
+            <button id="publish-btn" class="w-full bg-primary hover:bg-primary-light text-white py-4 rounded-xl font-bold shadow-lg transition-all transform hover:scale-[1.02]">
+                Publish and Lock Schedule
+            </button>
+        </div>
+    </main>
+
+    <script type="module">
+        import { api } from './js/api.js';
+        document.getElementById('publish-btn').addEventListener('click', async () => {
+            if (confirm("Are you sure you want to publish the schedule?")) {
+                try {
+                    await api.post('/admin/valider-emploi-du-temps', { classe_id: 1, semestre_id: 1, annee_id: 1 });
+                    alert("Schedule published successfully!");
+                    window.location.href = 'admin-dashboard.html';
+                } catch (err) {
+                    alert(err.message);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

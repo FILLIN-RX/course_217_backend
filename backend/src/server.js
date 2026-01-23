@@ -1,7 +1,7 @@
 import app from "./app.js";
 import * as departementController from "./controllers/adminController.js";
 import { seedUEs } from "./controllers/ue.controller.js"; 
-import { seedFilieres } from "./controllers/Filier.controller.js";
+import { seedFilieres } from "./controllers/filiere.controller.js";
 
 const PORT = process.env.PORT || 3000;
 

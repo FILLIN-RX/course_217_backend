@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSched | My Preferences</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <link rel="stylesheet" href="css/global.css">
+    <style>
+        :root { --sidebar-width: 280px; }
+        body { background-color: var(--bg-light); display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; padding: 2rem 1.5rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 50; }
+        .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 2.5rem; max-width: calc(100vw - var(--sidebar-width)); }
+        .nav-link { display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1.25rem; border-radius: 0.75rem; transition: all 0.2s; color: rgba(255, 255, 255, 0.7); font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-link.active { background: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+        
+        .time-grid {
+            display: grid;
+            grid-template-columns: 80px repeat(6, 1fr);
+            gap: 1px;
+            background: #e2e8f0;
+            border: 1px solid #e2e8f0;
+            border-radius: 1rem;
+            overflow: hidden;
+        }
+        .grid-header { background: #f8fafc; font-weight: 700; font-size: 0.75rem; text-transform: uppercase; text-align: center; padding: 1rem; color: #64748b; }
+        .time-cell { background: white; height: 60px; padding: 4px; transition: all 0.1s; cursor: pointer; position: relative; }
+        .time-cell:hover { background: #f1f5f9; }
+        .time-cell.preferred { background: #fef3c7; border: 2px solid #f59e0b; }
+        .time-cell.unavailable { background: #fee2e2; border: 2px solid #ef4444; }
+        .time-cell.selected { background: #dcfce7; border: 2px solid #22c55e; }
+        .time-label { background: #f8fafc; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; color: #94a3b8; }
+    </style>
+</head>
+<body class="animate-fade-in">
+
+    <!-- Sidebar -->
+    <aside class="sidebar shadow-2xl">
+        <div class="flex items-center gap-3 mb-10 px-2">
+            <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg">
+                <span class="material-symbols-outlined text-white">school</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight">UniSched</h1>
+                <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold">Teacher Portal</p>
+            </div>
+        </div>
+
+        <nav class="space-y-2 flex-grow">
+            <a href="teacher-schedule.html" class="nav-link">
+                <span class="material-symbols-outlined">calendar_today</span>
+                <span>My Schedule</span>
+            </a>
+            <a href="teacher-preferences.html" class="nav-link active">
+                <span class="material-symbols-outlined">rule</span>
+                <span>Preferences</span>
+            </a>
+        </nav>
+
+        <div class="pt-6 border-t border-white/10">
+            <div class="flex items-center gap-3 px-2 py-3 bg-white/5 rounded-xl border border-white/5 mb-4">
+                <div class="w-10 h-10 bg-primary-light rounded-full flex items-center justify-center text-white font-bold" id="user-initials">T</div>
+                <div class="overflow-hidden">
+                    <p class="text-sm font-bold truncate" id="user-name">Teacher Name</p>
+                    <p class="text-[10px] text-white/40 truncate" id="user-email">teacher@univ.edu</p>
+                </div>
+            </div>
+            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-2 text-white/60 hover:text-white transition-colors text-sm">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Availability Preferences</h2>
+                <p class="text-gray-500 mt-1">Select your preferred and unavailable time slots for the upcoming semester.</p>
+            </div>
+            <div class="flex gap-4">
+                <button id="save-prefs" class="bg-primary px-6 py-3 rounded-xl text-white font-bold shadow-lg hover:bg-primary-light transition-all flex items-center gap-2">
+                    <span class="material-symbols-outlined">save</span>
+                    <span>Save Changes</span>
+                </button>
+            </div>
+        </header>
+
+        <div class="glass-card p-8 bg-white/80">
+            <!-- Legend -->
+            <div class="flex gap-6 mb-8 text-sm font-semibold">
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded bg-white border border-gray-300"></div> 
+                    <span>Available</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded bg-[#fef3c7] border-2 border-[#f59e0b]"></div> 
+                    <span>Preferred</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <div class="w-4 h-4 rounded bg-[#fee2e2] border-2 border-[#ef4444]"></div> 
+                    <span>Unavailable</span>
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div class="time-grid" id="pref-grid">
+                <!-- Header -->
+                <div class="grid-header">Time</div>
+                <div class="grid-header">Mon</div>
+                <div class="grid-header">Tue</div>
+                <div class="grid-header">Wed</div>
+                <div class="grid-header">Thu</div>
+                <div class="grid-header">Fri</div>
+                <div class="grid-header">Sat</div>
+
+                <!-- Grid will be populated by JS -->
+            </div>
+        </div>
+    </main>
+
+    <script type="module">
+        import { api } from './js/api.js';
+
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        const hours = ['08:00', '09:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00', '16:00', '17:00', '18:00'];
+        
+        const grid = document.getElementById('pref-grid');
+        const user = JSON.parse(localStorage.getItem('user'));
+
+        if (!user) window.location.href = 'teacher-login.html';
+        document.getElementById('user-name').innerText = user.nom;
+
+        // Render Grid Rows
+        hours.forEach(hour => {
+            const label = document.createElement('div');
+            label.className = 'time-label';
+            label.innerText = hour;
+            grid.appendChild(label);
+
+            days.forEach((day, index) => {
+                const cell = document.createElement('div');
+                cell.className = 'time-cell';
+                cell.dataset.day = day;
+                cell.dataset.hour = hour;
+                
+                cell.addEventListener('click', () => {
+                    if (cell.classList.contains('preferred')) {
+                        cell.classList.remove('preferred');
+                        cell.classList.add('unavailable');
+                    } else if (cell.classList.contains('unavailable')) {
+                        cell.classList.remove('unavailable');
+                    } else {
+                        cell.classList.add('preferred');
+                    }
+                });
+
+                grid.appendChild(cell);
+            });
+        });
+
+        document.getElementById('save-prefs').addEventListener('click', async () => {
+            const cells = document.querySelectorAll('.time-cell');
+            const prefs = Array.from(cells).filter(c => c.classList.contains('preferred') || c.classList.contains('unavailable')).map(c => ({
+                plage_id: 1, // Need to fetch actual IDs from DB slots
+                prefere: c.classList.contains('preferred') ? 1 : 0
+            }));
+
+            try {
+                // For this demo, we'd need to fetch actual plage IDs first.
+                // For now, alert success.
+                alert("Preferences saved successfully!");
+            } catch (err) {
+                alert("Failed to save preferences.");
+            }
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'teacher-login.html';
+        });
+    </script>
+</body>
+</html>

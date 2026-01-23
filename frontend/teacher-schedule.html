@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSched | My Schedule</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <link rel="stylesheet" href="css/global.css">
+    <style>
+        :root { --sidebar-width: 280px; }
+        body { background-color: var(--bg-light); display: flex; min-height: 100vh; }
+        .sidebar { width: var(--sidebar-width); background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%); color: white; padding: 2rem 1.5rem; display: flex; flex-direction: column; position: fixed; height: 100vh; z-index: 50; }
+        .main-content { margin-left: var(--sidebar-width); flex-grow: 1; padding: 2.5rem; max-width: calc(100vw - var(--sidebar-width)); }
+        .nav-link { display: flex; align-items: center; gap: 1rem; padding: 0.875rem 1.25rem; border-radius: 0.75rem; transition: all 0.2s; color: rgba(255, 255, 255, 0.7); font-weight: 500; }
+        .nav-link:hover, .nav-link.active { background: rgba(255, 255, 255, 0.1); color: white; }
+        .nav-link.active { background: #3b82f6; box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3); }
+
+        .schedule-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 1.5rem; }
+        .day-card { background: white; border-radius: 1.25rem; padding: 1.5rem; box-shadow: var(--shadow-md); border: 1px solid rgba(0,0,0,0.05); }
+        .day-title { font-weight: 800; font-size: 0.85rem; color: #64748b; text-transform: uppercase; margin-bottom: 1.5rem; border-bottom: 2px solid #f1f5f9; padding-bottom: 0.5rem; }
+        .course-item { background: #f8fafc; padding: 1rem; border-radius: 0.75rem; margin-bottom: 1rem; border-left: 4px solid #3b82f6; }
+        .course-time { font-size: 0.7rem; font-weight: 700; color: #3b82f6; margin-bottom: 0.25rem; }
+        .course-name { font-weight: 700; font-size: 0.9rem; color: #1e293b; }
+        .course-room { font-size: 0.75rem; color: #64748b; margin-top: 0.25rem; display: flex; align-items: center; gap: 0.25rem; }
+    </style>
+</head>
+<body class="animate-fade-in">
+    <aside class="sidebar">
+        <div class="flex items-center gap-3 mb-10 px-2">
+            <div class="w-10 h-10 bg-blue-500 rounded-xl flex items-center justify-center shadow-lg"><span class="material-symbols-outlined text-white">school</span></div>
+            <div><h1 class="text-xl font-bold tracking-tight">UniSched</h1><p class="text-[10px] uppercase text-white/40 font-bold">Teacher Portal</p></div>
+        </div>
+        <nav class="space-y-2 flex-grow">
+            <a href="teacher-schedule.html" class="nav-link active"><span class="material-symbols-outlined">calendar_today</span><span>My Schedule</span></a>
+            <a href="teacher-preferences.html" class="nav-link"><span class="material-symbols-outlined">rule</span><span>Preferences</span></a>
+        </nav>
+        <div class="pt-6 border-t border-white/10">
+            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-2 text-white/60 hover:text-white transition-colors text-sm">
+                <span class="material-symbols-outlined">logout</span><span>Sign Out</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="flex justify-between items-center mb-10">
+            <div><h2 class="text-3xl font-bold text-gray-900 tracking-tight">My Weekly Schedule</h2><p class="text-gray-500 mt-1">View your assigned classes and room locations.</p></div>
+            <button class="bg-white px-5 py-2.5 rounded-xl border border-gray-200 text-sm font-semibold flex items-center gap-2 shadow-sm"><span class="material-symbols-outlined">print</span><span>Print Schedule</span></button>
+        </header>
+
+        <div class="schedule-grid" id="schedule-grid">
+            <!-- Populated by JS -->
+        </div>
+    </main>
+
+    <script type="module">
+        import { api } from './js/api.js';
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        const grid = document.getElementById('schedule-grid');
+        
+        async function loadSchedule() {
+            const user = JSON.parse(localStorage.getItem('user'));
+            if (!user) { window.location.href = 'teacher-login.html'; return; }
+            
+            try {
+                const schedule = await api.get('/enseignant/emplois-du-temps/detail');
+                grid.innerHTML = days.map(day => `
+                    <div class="day-card">
+                        <h3 class="day-title">${day}</h3>
+                        ${schedule.filter(s => s.jour === day).map(s => `
+                            <div class="course-item">
+                                <p class="course-time">${s.heure_debut} - ${s.heure_fin}</p>
+                                <p class="course-name">${s.code}: ${s.intitule || s.ue_intitule}</p>
+                                <p class="course-room"><span class="material-symbols-outlined text-sm">location_on</span> ${s.salle_nom || s.salle}</p>
+                            </div>
+                        `).join('') || '<p class="text-xs text-gray-400 italic">No classes</p>'}
+                    </div>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to load schedule");
+            }
+        }
+        loadSchedule();
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = 'teacher-login.html';
+        });
+    </script>
+</body>
+</html>
