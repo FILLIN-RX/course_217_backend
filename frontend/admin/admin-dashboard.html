@@ -104,23 +104,15 @@
         <nav class="flex-grow">
             <a href="admin-dashboard.html" class="nav-link active">
                 <span class="material-symbols-outlined">dashboard</span>
-                <span>Tableau de bord</span>
-            </a>
-            <a href="#" class="nav-link">
-                <span class="material-symbols-outlined">calendar_month</span>
-                <span>Emploi du Temps</span>
-            </a>
-            <a href="#" class="nav-link">
-                <span class="material-symbols-outlined">meeting_room</span>
-                <span>Salles</span>
+                <span>Dashboard</span>
             </a>
             <a href="admin-teachers.html" class="nav-link">
                 <span class="material-symbols-outlined">group</span>
                 <span>Enseignants</span>
             </a>
-            <a href="#" class="nav-link">
+            <a href="validation-panel.html" class="nav-link">
                 <span class="material-symbols-outlined">task_alt</span>
-                <span>Validations</span>
+                <span>Validation Panel</span>
             </a>
         </nav>
 
@@ -301,7 +293,7 @@
             // 3. Gestion de la déconnexion
             document.getElementById('logout-btn').addEventListener('click', () => {
                 localStorage.clear();
-                window.location.href = 'admin-login.html';
+                window.location.href = '../login.html';
             });
         });
     </script>

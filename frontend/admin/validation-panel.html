@@ -67,7 +67,11 @@
             <span class="material-symbols-outlined">dashboard</span>
             <span class="text-sm">Dashboard</span>
         </a>
-        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary font-bold" href="#">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-teachers.html">
+            <span class="material-symbols-outlined">group</span>
+            <span class="text-sm">Enseignants</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary font-bold" href="validation-panel.html">
             <span class="material-symbols-outlined">task_alt</span>
             <span class="text-sm">Validation Panel</span>
         </a>
@@ -197,6 +201,9 @@
         const token = localStorage.getItem('token');
         const currentSemestre = document.querySelector('input[name="semestre"]:checked').value;
         
+        console.log('=== CHARGEMENT GRILLE ADMIN ===');
+        console.log('Semestre sélectionné:', currentSemestre);
+        
         try {
             const [plagesResp, disposResp, sallesResp] = await Promise.all([
                 fetch(`${API_URL}/admin/plages`),
@@ -211,6 +218,18 @@
             const plages = await plagesResp.json();
             availabilityData = await disposResp.json();
             const salles = await sallesResp.json();
+            
+            console.log('Plages horaires chargées:', plages.length);
+            console.log('Données disponibilités:', availabilityData);
+            console.log('Nombre de créneaux avec disponibilités:', Object.keys(availabilityData).length);
+            
+            // Afficher le détail de chaque créneau
+            Object.entries(availabilityData).forEach(([plageId, profs]) => {
+                const plage = plages.find(p => p.id == plageId);
+                if (plage) {
+                    console.log(`Plage ${plageId} (${plage.jour} ${plage.heure_debut}):`, profs.map(p => p.nom).join(', '));
+                }
+            });
 
             renderGrid(plages);
             fillSalles(salles);

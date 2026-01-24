@@ -191,24 +191,53 @@ export const createSalle = async (req, res) => {
 
 // --- Récupérer les profs dispos pour la grille Admin ---
 export const getGrilleDisponibilitesOption = async (req, res) => {
+    const { semestre_id } = req.query;
+    
+    console.log('=== API: getGrilleDisponibilitesOption ===');
+    console.log('Semestre demandé:', semestre_id);
+    
     try {
-        const [rows] = await db.query(`
+        let query = `
             SELECT 
                 ph.id as plage_id,
+                ph.jour,
+                ph.heure_debut,
+                ph.heure_fin,
                 e.id as enseignant_id,
-                e.nom
+                e.nom,
+                de.prefere,
+                de.semestre_id
             FROM plages_horaires ph
             JOIN disponibilites_enseignants de ON ph.id = de.plage_id
             JOIN enseignants e ON de.enseignant_id = e.id
-            WHERE de.prefere = 1
-        `);
+            WHERE de.prefere = 1`;
+        
+        const params = [];
+        if (semestre_id) {
+            query += ` AND de.semestre_id = ?`;
+            params.push(semestre_id);
+        }
+        
+        query += ` ORDER BY ph.jour, ph.heure_debut`;
+        
+        const [rows] = await db.query(query, params);
+        
+        console.log(`Nombre de disponibilités trouvées: ${rows.length}`);
+        console.log('Échantillon (5 premières):', rows.slice(0, 5));
 
         // Regrouper par plage pour le front
         const mapping = rows.reduce((acc, row) => {
             if (!acc[row.plage_id]) acc[row.plage_id] = [];
-            acc[row.plage_id].push({ id: row.enseignant_id, nom: row.nom });
+            acc[row.plage_id].push({ 
+                id: row.enseignant_id, 
+                nom: row.nom,
+                semestre: row.semestre_id 
+            });
             return acc;
         }, {});
+        
+        console.log(`Nombre de créneaux avec disponibilités: ${Object.keys(mapping).length}`);
+        console.log('Mapping créé:', JSON.stringify(mapping, null, 2));
 
         res.json(mapping);
     } catch (err) {

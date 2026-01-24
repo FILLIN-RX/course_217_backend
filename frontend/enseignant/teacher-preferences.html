@@ -177,6 +177,9 @@
         const token = localStorage.getItem('token');
         const currentSemestre = document.querySelector('input[name="semestre"]:checked').value;
         
+        console.log('=== CHARGEMENT DISPONIBILITÉS SOUMISES ===');
+        console.log('Semestre:', currentSemestre);
+        
         try {
             const resp = await fetch(`${API_URL}/enseignant/disponibilites?semestre_id=${currentSemestre}`, {
                 headers: { 'Authorization': `Bearer ${token}` }
@@ -184,10 +187,15 @@
             
             if (resp.ok) {
                 const dispos = await resp.json();
+                console.log('Disponibilités reçues:', dispos);
+                
                 submittedSlots = {};
                 dispos.forEach(d => {
                     submittedSlots[d.plage_id] = d.prefere;
                 });
+                
+                console.log('Créneaux soumis chargés:', submittedSlots);
+                console.log('Nombre de créneaux:', Object.keys(submittedSlots).length);
             }
         } catch (e) {
             console.error('Erreur chargement disponibilités:', e);
@@ -265,36 +273,58 @@
     document.getElementById('save-btn').onclick = async () => {
         const token = localStorage.getItem('token');
         const btnText = document.getElementById('save-text');
+        const currentSemestre = document.querySelector('input[name="semestre"]:checked').value;
         
         if (Object.keys(selectedSlots).length === 0) {
             alert("Veuillez sélectionner au moins une plage horaire.");
             return;
         }
 
+        console.log('=== SOUMISSION DISPONIBILITÉS ===');
+        console.log('Semestre sélectionné:', currentSemestre);
+        console.log('Nombre de créneaux sélectionnés:', Object.keys(selectedSlots).length);
+        console.log('Détail des créneaux:', selectedSlots);
+
         btnText.textContent = "Envoi en cours...";
         
         try {
             // On envoie chaque préférence au backend
+            let successCount = 0;
             for (const [plageId, isPrefere] of Object.entries(selectedSlots)) {
-                await fetch(`${API_URL}/enseignant/disponibilite`, { // Ton endpoint submitDisponibilite
+                const payload = {
+                    plage_id: parseInt(plageId),
+                    prefere: isPrefere,
+                    semestre_id: parseInt(currentSemestre)
+                };
+                
+                console.log(`Envoi créneau ${plageId}:`, payload);
+                
+                const response = await fetch(`${API_URL}/enseignant/disponibilite`, {
                     method: 'POST',
                     headers: { 
                         'Authorization': `Bearer ${token}`,
                         'Content-Type': 'application/json' 
                     },
-                    body: JSON.stringify({
-                        plage_id: parseInt(plageId),
-                        prefere: isPrefere,
-                        semestre_id: parseInt(document.querySelector('input[name="semestre"]:checked').value)
-                    })
+                    body: JSON.stringify(payload)
                 });
+                
+                if (response.ok) {
+                    successCount++;
+                    console.log(`✓ Créneau ${plageId} enregistré`);
+                } else {
+                    console.error(`✗ Erreur créneau ${plageId}:`, await response.text());
+                }
             }
+            
+            console.log(`=== RÉSULTAT: ${successCount}/${Object.keys(selectedSlots).length} créneaux enregistrés ===`);
+            
             const semestre = document.querySelector('input[name="semestre"]:checked').value;
             alert(`Vos disponibilités pour le Semestre ${semestre} ont été transmises !`);
             selectedSlots = {};
+            await loadSubmittedAvailabilities();
             renderGrid();
         } catch (e) {
-            console.error(e);
+            console.error('ERREUR SOUMISSION:', e);
             alert("Erreur lors de l'enregistrement.");
         } finally {
             btnText.textContent = "Soumettre mes vœux";

@@ -74,21 +74,13 @@
                 <span class="material-symbols-outlined">dashboard</span>
                 <span>Dashboard</span>
             </a>
-            <a href="master-schedule.html" class="nav-link">
-                <span class="material-symbols-outlined">calendar_month</span>
-                <span>Emploi du Temps</span>
-            </a>
-            <a href="admin-rooms.html" class="nav-link">
-                <span class="material-symbols-outlined">meeting_room</span>
-                <span>Salles</span>
-            </a>
             <a href="admin-teachers.html" class="nav-link active">
                 <span class="material-symbols-outlined">group</span>
                 <span>Enseignants</span>
             </a>
             <a href="validation-panel.html" class="nav-link">
                 <span class="material-symbols-outlined">task_alt</span>
-                <span>Validations</span>
+                <span>Validation Panel</span>
             </a>
         </nav>
 
@@ -150,7 +142,7 @@
 
         document.addEventListener('DOMContentLoaded', async () => {
             const token = localStorage.getItem('token');
-            if (!token) { window.location.href = 'admin-login.html'; return; }
+            if (!token) { window.location.href = '../login.html'; return; }
 
             // 1. Charger Profil Admin (pour le nom en bas à gauche)
             try {
@@ -224,7 +216,7 @@
             // Déconnexion
             document.getElementById('logout-btn').addEventListener('click', () => {
                 localStorage.clear();
-                window.location.href = 'admin-login.html';
+                window.location.href = '../login.html';
             });
         });
     </script>
