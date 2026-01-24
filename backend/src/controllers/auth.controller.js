@@ -1,33 +1,57 @@
-import bcrypt from 'bcrypt';
+import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import db from '../config/db.js';
 
 export const registerUser = async (req, res) => {
-    // On utilise 'nom' pour correspondre au formulaire front-end
-    const { nom, email, password, role, enseignant_id } = req.body;
+    const { nom, email, password, role, ues } = req.body; // 'ues' est un tableau d'IDs [1, 2, 3]
 
+    const connection = await db.getConnection(); // Utilisation d'une transaction pour la sécurité
     try {
-        // Vérifier si l'utilisateur existe déjà
-        const [existingUser] = await db.query("SELECT id FROM users WHERE email = ?", [email]);
-        if (existingUser.length > 0) {
-            return res.status(400).json({ message: "Cet email est déjà utilisé." });
+        await connection.beginTransaction();
+
+        // 1. Vérifier si l'email existe
+        const [existing] = await connection.query("SELECT id FROM users WHERE email = ?", [email]);
+        if (existing.length > 0) {
+            return res.status(400).json({ message: "Email déjà utilisé" });
         }
 
         const hashedPassword = await bcrypt.hash(password, 10);
+        let enseignant_id = null;
 
-        // Insertion (Note : on n'utilise plus .promise() si le pool est déjà en mode promise)
-        const [result] = await db.query(
+        // 2. Si c'est un enseignant, on le crée d'abord dans la table 'enseignants'
+        if (role === 'ENSEIGNANT') {
+            const [ensResult] = await connection.query(
+                "INSERT INTO enseignants (nom, email) VALUES (?, ?)", 
+                [nom, email]
+            );
+            enseignant_id = ensResult.insertId;
+
+            // 3. Associer les UEs sélectionnées
+            if (ues && ues.length > 0) {
+                const values = ues.map(ueId => [enseignant_id, ueId]);
+                await connection.query(
+                    "INSERT INTO enseignant_ues (enseignant_id, ue_id) VALUES ?", 
+                    [values]
+                );
+            }
+        }
+
+        // 4. Créer le compte utilisateur
+        await connection.query(
             "INSERT INTO users (nom, email, password, role, enseignant_id) VALUES (?, ?, ?, ?, ?)",
-            [nom, email, hashedPassword, role, enseignant_id || null]
+            [nom, email, hashedPassword, role, enseignant_id]
         );
 
-        res.status(201).json({ message: "Utilisateur créé avec succès", userId: result.insertId });
+        await connection.commit();
+        res.status(201).json({ message: "Compte créé avec succès" });
+
     } catch (err) {
-        console.error("Erreur Register:", err);
-        res.status(500).json({ message: "Erreur lors de l'insertion en base de données" });
+        await connection.rollback();
+        console.error(err);
+        res.status(500).json({ message: "Erreur lors de l'inscription" });
+    } finally {
+        connection.release();
     }
 };
 

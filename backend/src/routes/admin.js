@@ -1,7 +1,6 @@
 import express from 'express';
 import * as adminController from '../controllers/admin.controller.js';
 import {createClasse, getClasses, updateClasse, deleteClasse} from '../controllers/classe.controller.js';
-import {createEnseignant, getEnseignants, updateEnseignant, deleteEnseignant} from '../controllers/enseignant.controller.js';
 import { getFilieres, createFiliere, updateFiliere, deleteFiliere} from '../controllers/filiere.controller.js';
 import { getUEs, createUE, updateUE, deleteUE} from '../controllers/ue.controller.js';
 import { createSalle, getSalles, updateSalle, deleteSalle } from '../controllers/salle.controller.js';
@@ -19,11 +18,7 @@ router.post('/filieres', authenticateToken, authorizeRole(['ADMIN']), createFili
 router.put('/filieres/:id', authenticateToken, authorizeRole(['ADMIN']), updateFiliere);
 router.delete('/filieres/:id', authenticateToken, authorizeRole(['ADMIN']), deleteFiliere);
 
-// --- Enseignants ---
-router.post('/enseignants', authenticateToken, authorizeRole(['ADMIN']), createEnseignant);
-router.get('/enseignants', authenticateToken, authorizeRole(['ADMIN']), getEnseignants);
-router.put('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), updateEnseignant);
-router.delete('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), deleteEnseignant);
+
 
 
 router.get('/ues', getUEs);

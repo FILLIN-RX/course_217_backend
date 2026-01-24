@@ -37,6 +37,14 @@ CREATE TABLE salles (
   capacite INT NOT NULL
 );
 
+CREATE TABLE enseignant_ues (
+  enseignant_id INT NOT NULL,
+  ue_id INT NOT NULL,
+  PRIMARY KEY (enseignant_id, ue_id),
+  FOREIGN KEY (enseignant_id) REFERENCES enseignants(id) ON DELETE CASCADE,
+  FOREIGN KEY (ue_id) REFERENCES ues(id) ON DELETE CASCADE
+);
+
 CREATE TABLE plages_horaires (
   id INT AUTO_INCREMENT PRIMARY KEY,
   jour ENUM('Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi') NOT NULL,

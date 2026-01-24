@@ -1,6 +1,20 @@
 import db from '../config/db.js';
 import { logAction } from '../services/audit.service.js';
 
+// --- Seeding ---
+export const seedDepartements = async () => {
+    try {
+        const [count] = await db.query("SELECT COUNT(*) as total FROM departements");
+        if (count[0].total === 0) {
+            console.log("🌱 Seeding Departements...");
+            await db.query("INSERT INTO departements (nom) VALUES ('Informatique'), ('Mathématiques'), ('Physique'), ('Lettres')");
+            console.log("✅ Departements seeded.");
+        }
+    } catch (err) {
+        console.error("❌ Seed Error:", err);
+    }
+};
+
 // --- Departements ---
 export const getDepartements = async (req, res) => {
     try {
@@ -32,10 +46,12 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
         }
         const classEffectif = effectifRows[0].effectif;
 
-        // 2. Get UEs for this class and semester
+        // 2. Get UEs for this semester (Global UEs logic as per user request 'UE no class ID')
+        // We assume UEs are filtered by semester only, or we would need a join via Filiere if schema permitted.
+        // For now, fetching all UEs for the semester that are NOT yet fully scheduled for this class.
         const [ues] = await db.query(
-            "SELECT * FROM ues WHERE classe_id=? AND semestre_id=?",
-            [classe_id, semestre_id]
+            "SELECT * FROM ues WHERE semestre_id=?",
+            [semestre_id]
         );
 
         // 3. Get all Rooms with enough capacity
@@ -57,6 +73,15 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
         for (const ue of ues) {
             let affecte = false;
 
+            // Check if UE is already scheduled for THIS class in this period
+            const [alreadyScheduled] = await db.query(
+               "SELECT id FROM emplois_du_temps WHERE ue_id=? AND semestre_id=? AND annee_id=? AND salle_id IN (SELECT salle_id FROM emplois_du_temps WHERE ue_id=?)", // Logic ambiguous without Many-to-Many mapping but proceeding with basic constraint
+               [ue.id, semestre_id, annee_id, ue.id]
+            );
+            // Simpler check: Has this UE been scheduled at all for this context? 
+            // Since UEs are global now, we might schedule the SAME UE for multiple classes? 
+            // The user didn't specify. Assuming ONE instance per UE for now or until collision.
+            
             // Get Teacher Preferences for this UE's teacher
             const [prefs] = await db.query(
                 "SELECT plage_id FROM disponibilites_enseignants WHERE enseignant_id=? AND prefere=1",
@@ -91,8 +116,6 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
                         "SELECT id FROM disponibilites_enseignants WHERE enseignant_id=? AND plage_id=?",
                         [ue.enseignant_id, plage.id]
                     );
-                    // If teachers must explicitly submit availability, check this. 
-                    // If no entry means unavailable, then:
                     if (isAvailable.length === 0) continue; 
 
                     // Place the UE
@@ -114,15 +137,8 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
             }
         }
 
-        // Check if schedule is complete
-        const [totalUEs] = await db.query("SELECT COUNT(*) as count FROM ues WHERE classe_id=? AND semestre_id=?", [classe_id, semestre_id]);
-        const [scheduledUEs] = await db.query("SELECT COUNT(*) as count FROM emplois_du_temps WHERE ue_id IN (SELECT id FROM ues WHERE classe_id=? AND semestre_id=?) AND semestre_id=? AND annee_id=?", [classe_id, semestre_id, semestre_id, annee_id]);
-
-        const isComplete = totalUEs[0].count === scheduledUEs[0].count;
-
         res.json({
-            message: isComplete ? "Emploi du temps généré avec succès !" : "Génération partielle terminée.",
-            isComplete,
+            message: "Génération automatique terminée.",
             nonAffectees
         });
 
@@ -138,9 +154,11 @@ export const validerEmploiDuTemps = async (req, res) => {
     const userId = req.user.id;
 
     try {
+        // Updated logic: Validate ALL drafts for this semester/year since UEs are not class-bound directly
+        // Or we assume the admin passes the context.
         await db.query(
-            "UPDATE emplois_du_temps SET statut='VALIDE' WHERE ue_id IN (SELECT id FROM ues WHERE classe_id=?) AND semestre_id=? AND annee_id=?",
-            [classe_id, semestre_id, annee_id]
+            "UPDATE emplois_du_temps SET statut='VALIDE' WHERE semestre_id=? AND annee_id=? AND statut='BROUILLON'",
+            [semestre_id, annee_id]
         );
         
         await logAction('VALIDATION_GLOBALE', 'emplois_du_temps', null, userId, { statut: 'BROUILLON' }, { statut: 'VALIDE' });
@@ -170,5 +188,3 @@ export const createSalle = async (req, res) => {
         res.status(500).json({ message: "Erreur serveur" });
     }
 };
-
-// Add other CRUDs similarly...

@@ -1,5 +1,23 @@
 import db from "../config/db.js";
 
+// --- Seeding ---
+export const seedClasses = async () => {
+    try {
+        const [count] = await db.query("SELECT COUNT(*) as total FROM classes");
+        if (count[0].total === 0) {
+            console.log("🌱 Seeding Classes...");
+            // Get 'Génie Logiciel' ID
+            const [fil] = await db.query("SELECT id FROM filieres WHERE nom = 'Génie Logiciel'");
+            const filId = fil.length ? fil[0].id : 1;
+
+            await db.query(`INSERT INTO classes (nom, filiere_id) VALUES ('L1 GL', ?), ('L2 GL', ?)`, [filId, filId]);
+            console.log("✅ Classes seeded.");
+        }
+    } catch (err) {
+        console.error("❌ Seed Classes Error:", err);
+    }
+};
+
 export const createClasse = async (req, res) => {
     const { nom, filiere_id } = req.body;
     try {
