@@ -4,15 +4,16 @@ import { logAction } from '../services/audit.service.js';
 // --- Submit Preferences ---
 export const submitDisponibilite = async (req, res) => {
     const enseignant_id = req.user.role === 'ENSEIGNANT' ? req.user.enseignant_id : req.body.enseignant_id;
-    const { plage_id, prefere } = req.body;
+    const { plage_id, prefere, semestre_id } = req.body;
     const userId = req.user.id;
 
     if (!enseignant_id) return res.status(400).json({ message: "ID Enseignant manquant." });
+    if (!semestre_id) return res.status(400).json({ message: "Semestre manquant." });
 
     try {
         const [existing] = await db.query(
-            "SELECT * FROM disponibilites_enseignants WHERE enseignant_id=? AND plage_id=?",
-            [enseignant_id, plage_id]
+            "SELECT * FROM disponibilites_enseignants WHERE enseignant_id=? AND plage_id=? AND semestre_id=?",
+            [enseignant_id, plage_id, semestre_id]
         );
 
         if (existing.length > 0) {
@@ -26,13 +27,14 @@ export const submitDisponibilite = async (req, res) => {
         }
 
         const [insert] = await db.query(
-            "INSERT INTO disponibilites_enseignants (enseignant_id, plage_id, prefere) VALUES (?, ?, ?)",
-            [enseignant_id, plage_id, prefere]
+            "INSERT INTO disponibilites_enseignants (enseignant_id, plage_id, semestre_id, prefere) VALUES (?, ?, ?, ?)",
+            [enseignant_id, plage_id, semestre_id, prefere]
         );
-        await logAction('CREATE_PREF', 'disponibilites_enseignants', insert.insertId, userId, null, { enseignant_id, plage_id, prefere });
+        // await logAction('CREATE_PREF', 'disponibilites_enseignants', insert.insertId, userId, null, { enseignant_id, plage_id, prefere });
         
         res.status(201).json({ message: "Préférence enregistrée." });
     } catch (err) {
+        console.error("Erreur submitDisponibilite:", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 };
@@ -56,6 +58,36 @@ export const getEmploiDuTempsDetail = async (req, res) => {
         );
         res.json(rows);
     } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// --- Get Teacher Availabilities ---
+export const getDisponibilites = async (req, res) => {
+    const enseignant_id = req.user.role === 'ENSEIGNANT' ? req.user.enseignant_id : req.query.enseignant_id;
+    const { semestre_id } = req.query;
+
+    if (!enseignant_id) return res.status(400).json({ message: "ID Enseignant manquant." });
+
+    try {
+        let query = `SELECT d.*, ph.jour, ph.heure_debut, ph.heure_fin 
+             FROM disponibilites_enseignants d
+             JOIN plages_horaires ph ON d.plage_id = ph.id
+             WHERE d.enseignant_id = ?`;
+        
+        const params = [enseignant_id];
+        
+        if (semestre_id) {
+            query += ` AND d.semestre_id = ?`;
+            params.push(semestre_id);
+        }
+        
+        query += ` ORDER BY FIELD(ph.jour,'Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'), ph.heure_debut`;
+        
+        const [rows] = await db.query(query, params);
+        res.json(rows);
+    } catch (err) {
+        console.error("Erreur getDisponibilites:", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 };

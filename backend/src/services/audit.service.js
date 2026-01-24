@@ -19,7 +19,7 @@ export const logAction = async (
 ) => {
   try {
     await db.query(
-      "INSERT INTO audit_logs (action, table_name, record_id, user_id, old_value, new_value) VALUES (?, ?, ?, ?, ?, ?)",
+      "INSERT INTO historique_modifications (action, table_name, record_id, user_id, old_value, new_value) VALUES (?, ?, ?, ?, ?, ?)",
       [
         action,
         tableName,

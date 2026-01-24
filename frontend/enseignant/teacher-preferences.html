@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UniSched | Mes Disponibilités</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#355f57",
+                        "primary-hover": "#2a4c45",
+                        "background-light": "#fafafa",
+                        "surface-light": "#ffffff",
+                        "border-light": "#e5e7eb",
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        
+        /* Effet de luminosité pour les cases sélectionnées */
+        .cell-selected-available { 
+            background-color: #355f57 !important; 
+            color: white !important;
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3), 0 0 10px rgba(53, 95, 87, 0.4);
+            border: 1px solid #2a4c45;
+            z-index: 1;
+        }
+        .cell-selected-unavailable { 
+            background-color: #ef4444 !important; 
+            color: white !important;
+            box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.3), 0 0 10px rgba(239, 68, 68, 0.4);
+            border: 1px solid #dc2626;
+            z-index: 1;
+        }
+        .grid-cell { transition: all 0.2s ease; }
+    </style>
+</head>
+<body class="bg-background-light text-[#131615] font-display overflow-hidden h-screen flex">
+
+<aside class="w-64 h-full flex flex-col bg-surface-light border-r border-border-light shrink-0 z-20">
+    <div class="p-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white shadow-lg">
+                <span class="material-symbols-outlined">school</span>
+            </div>
+            <h1 class="text-base font-bold tracking-tight">UniSched</h1>
+        </div>
+    </div>
+    <nav class="flex-1 px-3 py-4">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary font-bold" href="#">
+            <span class="material-symbols-outlined">calendar_clock</span>
+            <span class="text-sm">Mes Disponibilités</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-border-light">
+        <div class="flex items-center gap-3">
+            <div id="user-avatar" class="rounded-full size-9 bg-primary text-white flex items-center justify-center font-bold text-xs shadow-md">--</div>
+            <div class="flex-1 min-w-0">
+                <p id="profile-name" class="text-sm font-bold truncate">Chargement...</p>
+            </div>
+            <button id="logout-btn" class="text-gray-400 hover:text-red-500 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+    <header class="bg-surface-light border-b border-border-light px-8 py-5 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div>
+            <h2 class="text-2xl font-black tracking-tight text-gray-900">Grille de Disponibilités</h2>
+            <p class="text-sm text-gray-500 font-medium">Cliquez sur les cases pour indiquer vos heures libres (8h - 20h)</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex bg-gray-100 p-1 rounded-xl" id="semestre-selector">
+                <label class="relative flex cursor-pointer">
+                    <input checked class="peer sr-only" name="semestre" type="radio" value="1"/>
+                    <div class="px-5 py-2 rounded-lg peer-checked:bg-primary peer-checked:text-white text-gray-600 text-sm font-bold transition-all">
+                        Semestre 1
+                    </div>
+                </label>
+                <label class="relative flex cursor-pointer">
+                    <input class="peer sr-only" name="semestre" type="radio" value="2"/>
+                    <div class="px-5 py-2 rounded-lg peer-checked:bg-primary peer-checked:text-white text-gray-600 text-sm font-bold transition-all">
+                        Semestre 2
+                    </div>
+                </label>
+            </div>
+            <button id="save-btn" class="flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-8 py-3 rounded-xl text-sm font-bold transition-all shadow-xl active:scale-95">
+                <span id="save-text">Soumettre mes vœux</span>
+                <span class="material-symbols-outlined text-[18px]">send</span>
+            </button>
+        </div>
+    </header>
+
+    <section class="px-8 py-4 bg-white/50 flex items-center gap-6 border-b border-border-light">
+        <div class="flex bg-gray-100 p-1 rounded-xl" id="mode-selector">
+            <label class="relative flex cursor-pointer">
+                <input checked class="peer sr-only" name="mode" type="radio" value="available"/>
+                <div class="px-6 py-2 rounded-lg peer-checked:bg-white peer-checked:text-primary peer-checked:shadow-sm text-gray-500 text-sm font-bold flex items-center gap-2 transition-all">
+                    <span class="material-symbols-outlined text-[18px]">check_circle</span>Libre
+                </div>
+            </label>
+            <label class="relative flex cursor-pointer">
+                <input class="peer sr-only" name="mode" type="radio" value="unavailable"/>
+                <div class="px-6 py-2 rounded-lg peer-checked:bg-white peer-checked:text-red-600 peer-checked:shadow-sm text-gray-500 text-sm font-bold flex items-center gap-2 transition-all">
+                    <span class="material-symbols-outlined text-[18px]">block</span>Occupé
+                </div>
+            </label>
+        </div>
+        <p class="text-xs text-gray-400 italic">* L'administrateur utilisera ces informations pour générer votre emploi du temps.</p>
+    </section>
+
+    <section class="flex-1 overflow-auto custom-scrollbar p-8">
+        <div class="min-w-[900px] bg-white rounded-2xl shadow-xl border border-border-light overflow-hidden">
+            <div class="grid grid-cols-[100px_repeat(6,1fr)] border-b border-border-light bg-gray-50/50 sticky top-0 z-20 backdrop-blur-md">
+                <div class="p-4 flex items-center justify-center border-r"><span class="material-symbols-outlined text-gray-400">schedule</span></div>
+                <div class="p-4 text-center font-bold text-gray-700">Lundi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Mardi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Mercredi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Jeudi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Vendredi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Samedi</div>
+            </div>
+
+            <div id="grid-body" class="grid grid-cols-[100px_repeat(6,1fr)]">
+                </div>
+        </div>
+    </section>
+</main>
+
+<script type="module">
+    const API_URL = "http://localhost:4000";
+    const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    // Plages de 8h à 20h (par pas de 1h)
+    const hours = [];
+    for(let i=8; i<=19; i++) {
+        hours.push(`${i.toString().padStart(2, '0')}:00`);
+    }
+
+    let selectedSlots = {}; // { "plage_id": true/false (prefere) }
+    let submittedSlots = {}; // Disponibilités déjà soumises (disabled)
+
+    async function init() {
+        const token = localStorage.getItem('token');
+        if (!token) { window.location.href = 'teacher-login.html'; return; }
+
+        try {
+            const resp = await fetch(`${API_URL}/auth/profile`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (resp.ok) {
+                const user = await resp.json();
+                document.getElementById('profile-name').textContent = user.nom;
+                document.getElementById('user-avatar').textContent = user.nom.substring(0,2).toUpperCase();
+            }
+        } catch (e) { console.error(e); }
+
+        await loadSubmittedAvailabilities();
+        renderGrid();
+    }
+
+    async function loadSubmittedAvailabilities() {
+        const token = localStorage.getItem('token');
+        const currentSemestre = document.querySelector('input[name="semestre"]:checked').value;
+        
+        try {
+            const resp = await fetch(`${API_URL}/enseignant/disponibilites?semestre_id=${currentSemestre}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (resp.ok) {
+                const dispos = await resp.json();
+                submittedSlots = {};
+                dispos.forEach(d => {
+                    submittedSlots[d.plage_id] = d.prefere;
+                });
+            }
+        } catch (e) {
+            console.error('Erreur chargement disponibilités:', e);
+        }
+    }
+
+    function renderGrid() {
+        const grid = document.getElementById('grid-body');
+        grid.innerHTML = '';
+
+        hours.forEach((time, index) => {
+            // Label Heure (ex: 08:00 - 09:00)
+            const nextHour = (parseInt(time) + 1).toString().padStart(2, '0') + ":00";
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = "h-14 border-b flex flex-col items-center justify-center bg-gray-50/30 border-r";
+            labelDiv.innerHTML = `
+                <span class="text-[11px] font-bold text-gray-900">${time}</span>
+                <span class="text-[9px] text-gray-400">${nextHour}</span>
+            `;
+            grid.appendChild(labelDiv);
+            
+            days.forEach(day => {
+                // Simulation d'un ID de plage
+                const virtualPlageId = (hours.indexOf(time) * 6) + days.indexOf(day) + 1;
+                
+                const cell = document.createElement('div');
+                
+                // Vérifier si cette plage est déjà soumise
+                const isSubmitted = submittedSlots.hasOwnProperty(virtualPlageId);
+                
+                if (isSubmitted) {
+                    // Cellule grisée et disabled
+                    const isPrefered = submittedSlots[virtualPlageId];
+                    cell.className = "h-14 border-b border-l border-border-light flex items-center justify-center opacity-60 cursor-not-allowed";
+                    cell.style.backgroundColor = isPrefered ? '#d1fae5' : '#fee2e2';
+                    cell.innerHTML = `<span class="material-symbols-outlined text-sm text-gray-500">${isPrefered ? 'done' : 'close'}</span>`;
+                    cell.title = isPrefered ? 'Disponible (soumis)' : 'Occupé (soumis)';
+                } else {
+                    // Cellule normale cliquable
+                    cell.className = "h-14 border-b border-l border-border-light cursor-pointer grid-cell hover:bg-emerald-50/30 flex items-center justify-center";
+                    cell.dataset.plageId = virtualPlageId;
+                    cell.onclick = () => toggleCell(cell, virtualPlageId);
+                }
+                
+                grid.appendChild(cell);
+            });
+        });
+    }
+
+    function toggleCell(element, plageId) {
+        const mode = document.querySelector('input[name="mode"]:checked').value;
+        const isAvailable = (mode === 'available');
+
+        if (selectedSlots[plageId] !== undefined && (selectedSlots[plageId] === isAvailable)) {
+            // Déselectionner si on reclique sur le même mode
+            delete selectedSlots[plageId];
+            element.classList.remove('cell-selected-available', 'cell-selected-unavailable');
+            element.innerHTML = '';
+        } else {
+            // Sélectionner
+            selectedSlots[plageId] = isAvailable;
+            element.classList.remove('cell-selected-available', 'cell-selected-unavailable');
+            
+            if (isAvailable) {
+                element.classList.add('cell-selected-available');
+                element.innerHTML = '<span class="material-symbols-outlined text-sm">done</span>';
+            } else {
+                element.classList.add('cell-selected-unavailable');
+                element.innerHTML = '<span class="material-symbols-outlined text-sm">close</span>';
+            }
+        }
+    }
+
+    document.getElementById('save-btn').onclick = async () => {
+        const token = localStorage.getItem('token');
+        const btnText = document.getElementById('save-text');
+        
+        if (Object.keys(selectedSlots).length === 0) {
+            alert("Veuillez sélectionner au moins une plage horaire.");
+            return;
+        }
+
+        btnText.textContent = "Envoi en cours...";
+        
+        try {
+            // On envoie chaque préférence au backend
+            for (const [plageId, isPrefere] of Object.entries(selectedSlots)) {
+                await fetch(`${API_URL}/enseignant/disponibilite`, { // Ton endpoint submitDisponibilite
+                    method: 'POST',
+                    headers: { 
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json' 
+                    },
+                    body: JSON.stringify({
+                        plage_id: parseInt(plageId),
+                        prefere: isPrefere,
+                        semestre_id: parseInt(document.querySelector('input[name="semestre"]:checked').value)
+                    })
+                });
+            }
+            const semestre = document.querySelector('input[name="semestre"]:checked').value;
+            alert(`Vos disponibilités pour le Semestre ${semestre} ont été transmises !`);
+            selectedSlots = {};
+            renderGrid();
+        } catch (e) {
+            console.error(e);
+            alert("Erreur lors de l'enregistrement.");
+        } finally {
+            btnText.textContent = "Soumettre mes vœux";
+        }
+    };
+
+    // Recharger la grille quand on change de semestre
+    document.querySelectorAll('input[name="semestre"]').forEach(radio => {
+        radio.addEventListener('change', async () => {
+            selectedSlots = {};
+            await loadSubmittedAvailabilities();
+            renderGrid();
+        });
+    });
+
+    init();
+</script>
+</body>
+</html>

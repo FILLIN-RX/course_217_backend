@@ -28,7 +28,11 @@ CREATE TABLE semestres (
 CREATE TABLE ues (
   id INT AUTO_INCREMENT PRIMARY KEY,
   code VARCHAR(20) NOT NULL,
-  intitule VARCHAR(100) NOT NULL
+  intitule VARCHAR(100) NOT NULL,
+  classe_id INT NOT NULL,
+  semestre_id INT NOT NULL,
+  FOREIGN KEY (classe_id) REFERENCES classes(id) ON DELETE CASCADE,
+  FOREIGN KEY (semestre_id) REFERENCES semestres(id) ON DELETE CASCADE
 );
 
 CREATE TABLE salles (
@@ -75,9 +79,12 @@ CREATE TABLE disponibilites_enseignants (
   id INT AUTO_INCREMENT PRIMARY KEY,
   enseignant_id INT NOT NULL,
   plage_id INT NOT NULL,
+  semestre_id INT NOT NULL,
   prefere BOOLEAN DEFAULT true,
   FOREIGN KEY (enseignant_id) REFERENCES enseignants(id) ON DELETE CASCADE,
-  FOREIGN KEY (plage_id) REFERENCES plages_horaires(id) ON DELETE CASCADE
+  FOREIGN KEY (plage_id) REFERENCES plages_horaires(id) ON DELETE CASCADE,
+  FOREIGN KEY (semestre_id) REFERENCES semestres(id) ON DELETE CASCADE,
+  UNIQUE(enseignant_id, plage_id, semestre_id)
 );
 
 CREATE TABLE emplois_du_temps (

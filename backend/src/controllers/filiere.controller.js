@@ -6,13 +6,12 @@ export const seedFilieres = async () => {
         const [count] = await db.query("SELECT COUNT(*) as total FROM filieres");
         if (count[0].total === 0) {
             console.log("🌱 Seeding Filieres...");
-            // Get 'Informatique' ID
             const [dep] = await db.query("SELECT id FROM departements WHERE nom = 'Informatique'");
             const depId = dep.length ? dep[0].id : 1;
 
             await db.query(`INSERT INTO filieres (nom, departement_id) VALUES 
-                ('Génie Logiciel', ?), 
-                ('Sécurité Informatique', ?)`, [depId, depId]);
+                ('Informatique Fondamentale', ?), 
+                ('ICT 4 Development', ?)`, [depId, depId]);
             console.log("✅ Filieres seeded.");
         }
     } catch (err) {

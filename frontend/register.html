@@ -42,7 +42,7 @@
         async function loadUEs() {
             try {
                 // Note: Créez une route simple GET /ues dans votre backend pour ceci
-                const res = await fetch("http://localhost:4000/ues"); 
+                const res = await fetch("http://localhost:4000/admin/ues"); 
                 const ues = await res.json();
                 const select = document.getElementById('ues');
                 ues.forEach(ue => {

@@ -6,11 +6,21 @@ export const seedClasses = async () => {
         const [count] = await db.query("SELECT COUNT(*) as total FROM classes");
         if (count[0].total === 0) {
             console.log("🌱 Seeding Classes...");
-            // Get 'Génie Logiciel' ID
-            const [fil] = await db.query("SELECT id FROM filieres WHERE nom = 'Génie Logiciel'");
-            const filId = fil.length ? fil[0].id : 1;
+            
+            // Get both filieres
+            const [filieres] = await db.query("SELECT id, nom FROM filieres");
+            
+            const levels = ['L1', 'L2', 'L3', 'Master 1', 'Master 2'];
+            const classes = [];
+            
+            filieres.forEach(fil => {
+                levels.forEach(level => {
+                    const shortName = fil.nom.includes('Fondamentale') ? 'IF' : 'ICT4D';
+                    classes.push([`${level} ${shortName}`, fil.id]);
+                });
+            });
 
-            await db.query(`INSERT INTO classes (nom, filiere_id) VALUES ('L1 GL', ?), ('L2 GL', ?)`, [filId, filId]);
+            await db.query("INSERT INTO classes (nom, filiere_id) VALUES ?", [classes]);
             console.log("✅ Classes seeded.");
         }
     } catch (err) {

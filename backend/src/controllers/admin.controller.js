@@ -7,7 +7,7 @@ export const seedDepartements = async () => {
         const [count] = await db.query("SELECT COUNT(*) as total FROM departements");
         if (count[0].total === 0) {
             console.log("🌱 Seeding Departements...");
-            await db.query("INSERT INTO departements (nom) VALUES ('Informatique'), ('Mathématiques'), ('Physique'), ('Lettres')");
+            await db.query("INSERT INTO departements (nom) VALUES ('Informatique')");
             console.log("✅ Departements seeded.");
         }
     } catch (err) {
@@ -185,6 +185,46 @@ export const createSalle = async (req, res) => {
         const [result] = await db.query("INSERT INTO salles (nom, capacite) VALUES (?, ?)", [nom, capacite]);
         res.status(201).json({ id: result.insertId, nom, capacite });
     } catch (err) {
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// --- Récupérer les profs dispos pour la grille Admin ---
+export const getGrilleDisponibilitesOption = async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT 
+                ph.id as plage_id,
+                e.id as enseignant_id,
+                e.nom
+            FROM plages_horaires ph
+            JOIN disponibilites_enseignants de ON ph.id = de.plage_id
+            JOIN enseignants e ON de.enseignant_id = e.id
+            WHERE de.prefere = 1
+        `);
+
+        // Regrouper par plage pour le front
+        const mapping = rows.reduce((acc, row) => {
+            if (!acc[row.plage_id]) acc[row.plage_id] = [];
+            acc[row.plage_id].push({ id: row.enseignant_id, nom: row.nom });
+            return acc;
+        }, {});
+
+        res.json(mapping);
+    } catch (err) {
+        console.error("Erreur getGrilleDisponibilitesOption:", err);
+        res.status(500).json({ message: "Erreur serveur" });
+    }
+};
+
+// --- Récupérer les UEs d'un enseignant choisi dans la pop-up ---
+export const getUesEnseignant = async (req, res) => {
+    const { enseignant_id } = req.params;
+    try {
+        const [ues] = await db.query("SELECT * FROM ues", []);
+        res.json(ues);
+    } catch (err) {
+        console.error("Erreur getUesEnseignant:", err);
         res.status(500).json({ message: "Erreur serveur" });
     }
 };

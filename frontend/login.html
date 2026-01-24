@@ -47,9 +47,9 @@
                     
                     // Redirection intelligente selon le rôle
                     if(data.user.role === 'ADMIN') {
-                        window.location.href = "admin-dashboard.html";
+                        window.location.href = "admin/admin-dashboard.html";
                     } else {
-                        window.location.href = "enseignant-space.html";
+                        window.location.href = "enseignant/teacher.html";
                     }
                 } else {
                     alert(data.message);

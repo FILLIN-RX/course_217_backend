@@ -1,6 +1,7 @@
 import express from 'express';
 import { 
-    submitDisponibilite,  
+    submitDisponibilite,
+    getDisponibilites,
     getEmploiDuTempsDetail 
 } from '../controllers/enseignant.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.js';
@@ -8,7 +9,10 @@ import { authenticateToken, authorizeRole } from '../middlewares/auth.js';
 const router = express.Router();
 
 // Soumettre une disponibilité
-router.post('/disponibilites', authenticateToken, authorizeRole(['ENSEIGNANT']), submitDisponibilite);
+router.post('/disponibilite', authenticateToken, authorizeRole(['ENSEIGNANT']), submitDisponibilite);
+
+// Consulter ses disponibilités soumises
+router.get('/disponibilites', authenticateToken, authorizeRole(['ENSEIGNANT']), getDisponibilites);
 
 // Consulter emploi du temps détaillé
 router.get(

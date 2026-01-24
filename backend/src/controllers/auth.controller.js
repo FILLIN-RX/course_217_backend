@@ -1,7 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import db from '../config/db.js';
-import db from '../config/db.js';
 
 export const registerUser = async (req, res) => {
     const { nom, email, password, role, ues } = req.body; // 'ues' est un tableau d'IDs [1, 2, 3]
@@ -73,7 +72,7 @@ export const login = async (req, res) => {
         }
 
         const token = jwt.sign(
-            { id: user.id, role: user.role },
+            { id: user.id, role: user.role, enseignant_id: user.enseignant_id },
             process.env.JWT_SECRET,
             { expiresIn: '8h' }
         );
@@ -81,7 +80,7 @@ export const login = async (req, res) => {
         res.json({ 
             message: "Connexion réussie", 
             token,
-            user: { id: user.id, nom: user.nom, role: user.role } 
+            user: { id: user.id, nom: user.nom, role: user.role, enseignant_id: user.enseignant_id } 
         });
     } catch (err) {
         console.error("Erreur Login:", err);
