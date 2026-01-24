@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UniSched | Validation Panel</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#355f57",
+                        "primary-hover": "#2a4c45",
+                        "background-light": "#fafafa",
+                        "surface-light": "#ffffff",
+                        "border-light": "#e5e7eb",
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        
+        .grid-cell { transition: all 0.2s ease; }
+        .cell-with-teachers {
+            background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
+            cursor: pointer;
+        }
+        .cell-with-teachers:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(53, 95, 87, 0.2);
+        }
+        .teacher-badge {
+            background: #355f57;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 10px;
+            font-weight: 600;
+            margin: 2px;
+            display: inline-block;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-[#131615] font-display overflow-hidden h-screen flex">
+
+<aside class="w-64 h-full flex flex-col bg-surface-light border-r border-border-light shrink-0 z-20">
+    <div class="p-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white shadow-lg">
+                <span class="material-symbols-outlined">school</span>
+            </div>
+            <h1 class="text-base font-bold tracking-tight">UniSched</h1>
+        </div>
+    </div>
+    <nav class="flex-1 px-3 py-4">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-dashboard.html">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-sm">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-teachers.html">
+            <span class="material-symbols-outlined">group</span>
+            <span class="text-sm">Enseignants</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary font-bold" href="validation-panel.html">
+            <span class="material-symbols-outlined">task_alt</span>
+            <span class="text-sm">Validation Panel</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-border-light">
+        <div class="flex items-center gap-3">
+            <div id="user-avatar" class="rounded-full size-9 bg-primary text-white flex items-center justify-center font-bold text-xs shadow-md">AD</div>
+            <div class="flex-1 min-w-0">
+                <p id="profile-name" class="text-sm font-bold truncate">Admin</p>
+            </div>
+            <button id="logout-btn" class="text-gray-400 hover:text-red-500 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
+        </div>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+    <header class="bg-surface-light border-b border-border-light px-8 py-5 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div>
+            <h2 class="text-2xl font-black tracking-tight text-gray-900">Grille des Disponibilités Enseignants</h2>
+            <p class="text-sm text-gray-500 font-medium">Visualisez les disponibilités soumises par semestre</p>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex bg-gray-100 p-1 rounded-xl" id="semestre-selector">
+                <label class="relative flex cursor-pointer">
+                    <input checked class="peer sr-only" name="semestre" type="radio" value="1"/>
+                    <div class="px-5 py-2 rounded-lg peer-checked:bg-primary peer-checked:text-white text-gray-600 text-sm font-bold transition-all">
+                        Semestre 1
+                    </div>
+                </label>
+                <label class="relative flex cursor-pointer">
+                    <input class="peer sr-only" name="semestre" type="radio" value="2"/>
+                    <div class="px-5 py-2 rounded-lg peer-checked:bg-primary peer-checked:text-white text-gray-600 text-sm font-bold transition-all">
+                        Semestre 2
+                    </div>
+                </label>
+            </div>
+        </div>
+    </header>
+
+    <section class="px-8 py-4 bg-white/50 flex items-center gap-6 border-b border-border-light">
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded" style="background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);"></div>
+            <span class="text-xs text-gray-600 font-medium">Enseignants disponibles</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <div class="w-4 h-4 rounded bg-gray-100"></div>
+            <span class="text-xs text-gray-600 font-medium">Aucune disponibilité</span>
+        </div>
+    </section>
+
+    <section class="flex-1 overflow-auto custom-scrollbar p-8">
+        <div class="min-w-[900px] bg-white rounded-2xl shadow-xl border border-border-light overflow-hidden">
+            <div class="grid grid-cols-[100px_repeat(6,1fr)] border-b border-border-light bg-gray-50/50 sticky top-0 z-20 backdrop-blur-md">
+                <div class="p-4 flex items-center justify-center border-r"><span class="material-symbols-outlined text-gray-400">schedule</span></div>
+                <div class="p-4 text-center font-bold text-gray-700">Lundi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Mardi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Mercredi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Jeudi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Vendredi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Samedi</div>
+            </div>
+
+            <div id="grid-body" class="grid grid-cols-[100px_repeat(6,1fr)]">
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Modal pour assigner un cours -->
+<div id="modal-assign" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded-2xl w-[500px] shadow-2xl">
+        <h3 class="text-xl font-bold mb-4 text-gray-900">Assigner un cours</h3>
+        <p id="info-plage" class="text-sm text-gray-500 mb-6 font-medium"></p>
+        
+        <div class="mb-4 p-4 bg-emerald-50 rounded-lg border border-emerald-200">
+            <p class="text-xs font-bold text-emerald-800 mb-2">Enseignants disponibles :</p>
+            <div id="available-teachers" class="flex flex-wrap gap-2"></div>
+        </div>
+        
+        <form id="form-assign" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Enseignant</label>
+                <select id="modal-profs" class="w-full border p-2.5 rounded-lg" required>
+                    <option value="">Choisir un enseignant...</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">UE (Matière)</label>
+                <select id="modal-ues" class="w-full border p-2.5 rounded-lg" required disabled>
+                    <option value="">Sélectionnez d'abord un prof...</option>
+                </select>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Salle</label>
+                <select id="modal-salles" class="w-full border p-2.5 rounded-lg" required></select>
+            </div>
+            
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Annuler</button>
+                <button type="submit" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover">Confirmer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    const API_URL = "http://localhost:4000";
+    const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    const hours = [];
+    for(let i=8; i<=19; i++) {
+        hours.push(`${i.toString().padStart(2, '0')}:00`);
+    }
+
+    let currentPlageId = null;
+    let availabilityData = {};
+
+    async function init() {
+        const token = localStorage.getItem('token');
+        if (!token) { window.location.href = '../login.html'; return; }
+
+        await loadData();
+    }
+
+    async function loadData() {
+        const token = localStorage.getItem('token');
+        const currentSemestre = document.querySelector('input[name="semestre"]:checked').value;
+        
+        console.log('=== CHARGEMENT GRILLE ADMIN ===');
+        console.log('Semestre sélectionné:', currentSemestre);
+        
+        try {
+            const [plagesResp, disposResp, sallesResp] = await Promise.all([
+                fetch(`${API_URL}/admin/plages`),
+                fetch(`${API_URL}/admin/disponibilites-grille?semestre_id=${currentSemestre}`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                }),
+                fetch(`${API_URL}/admin/salles`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            const plages = await plagesResp.json();
+            availabilityData = await disposResp.json();
+            const salles = await sallesResp.json();
+            
+            console.log('Plages horaires chargées:', plages.length);
+            console.log('Données disponibilités:', availabilityData);
+            console.log('Nombre de créneaux avec disponibilités:', Object.keys(availabilityData).length);
+            
+            // Afficher le détail de chaque créneau
+            Object.entries(availabilityData).forEach(([plageId, profs]) => {
+                const plage = plages.find(p => p.id == plageId);
+                if (plage) {
+                    console.log(`Plage ${plageId} (${plage.jour} ${plage.heure_debut}):`, profs.map(p => p.nom).join(', '));
+                }
+            });
+
+            renderGrid(plages);
+            fillSalles(salles);
+        } catch (err) {
+            console.error('Erreur chargement données:', err);
+        }
+    }
+
+    function renderGrid(plages) {
+        const grid = document.getElementById('grid-body');
+        grid.innerHTML = '';
+
+        hours.forEach(time => {
+            const nextHour = (parseInt(time) + 1).toString().padStart(2, '0') + ":00";
+            
+            const labelDiv = document.createElement('div');
+            labelDiv.className = "h-20 border-b flex flex-col items-center justify-center bg-gray-50/30 border-r";
+            labelDiv.innerHTML = `
+                <span class="text-[11px] font-bold text-gray-900">${time}</span>
+                <span class="text-[9px] text-gray-400">${nextHour}</span>
+            `;
+            grid.appendChild(labelDiv);
+            
+            days.forEach(day => {
+                const plage = plages.find(p => p.jour === day && p.heure_debut.startsWith(time));
+                const cell = document.createElement('div');
+                
+                if (plage && availabilityData[plage.id] && availabilityData[plage.id].length > 0) {
+                    cell.className = "h-20 border-b border-l border-border-light p-2 overflow-y-auto custom-scrollbar cell-with-teachers";
+                    availabilityData[plage.id].forEach(prof => {
+                        const badge = document.createElement('span');
+                        badge.className = "teacher-badge";
+                        badge.textContent = prof.nom;
+                        cell.appendChild(badge);
+                    });
+                    cell.onclick = () => openModal(plage, availabilityData[plage.id]);
+                } else {
+                    cell.className = "h-20 border-b border-l border-border-light bg-gray-50/30";
+                }
+                
+                grid.appendChild(cell);
+            });
+        });
+    }
+
+    function openModal(plage, profs) {
+        currentPlageId = plage.id;
+        document.getElementById('modal-assign').classList.remove('hidden');
+        document.getElementById('info-plage').innerText = `${plage.jour} de ${plage.heure_debut.slice(0,5)} à ${plage.heure_fin.slice(0,5)}`;
+        
+        const profSelect = document.getElementById('modal-profs');
+        const teacherList = document.getElementById('available-teachers');
+        
+        profSelect.innerHTML = '<option value="">Choisir...</option>';
+        teacherList.innerHTML = '';
+        
+        profs.forEach(p => {
+            profSelect.innerHTML += `<option value="${p.id}">${p.nom}</option>`;
+            teacherList.innerHTML += `<span class="teacher-badge">${p.nom}</span>`;
+        });
+    }
+
+    document.getElementById('modal-profs').onchange = async (e) => {
+        const ueSelect = document.getElementById('modal-ues');
+        if(!e.target.value) return;
+
+        const token = localStorage.getItem('token');
+        const resp = await fetch(`${API_URL}/admin/ues-enseignant/${e.target.value}`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const ues = await resp.json();
+        
+        ueSelect.innerHTML = '<option value="">Choisir l\'UE...</option>';
+        ues.forEach(u => {
+            ueSelect.innerHTML += `<option value="${u.id}">${u.code} - ${u.intitule}</option>`;
+        });
+        ueSelect.disabled = false;
+    };
+
+    window.closeModal = () => document.getElementById('modal-assign').classList.add('hidden');
+
+    function fillSalles(salles) {
+        const s = document.getElementById('modal-salles');
+        salles.forEach(sa => s.innerHTML += `<option value="${sa.id}">${sa.nom} (${sa.capacite} places)</option>`);
+    }
+
+    // Recharger quand on change de semestre
+    document.querySelectorAll('input[name="semestre"]').forEach(radio => {
+        radio.addEventListener('change', () => {
+            loadData();
+        });
+    });
+
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = '../login.html';
+    });
+
+    init();
+</script>
+</body>
+</html>

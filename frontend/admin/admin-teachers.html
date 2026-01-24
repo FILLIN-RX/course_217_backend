@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UniSched | Répertoire des Enseignants</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap">
+    <style>
+        :root {
+            --sidebar-width: 280px;
+            --primary: #355f57;
+        }
+        body {
+            background-color: #f8fafc;
+            font-family: 'Inter', sans-serif;
+            display: flex;
+            min-height: 100vh;
+        }
+        /* Sidebar identique au Dashboard */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: linear-gradient(180deg, #132c28 0%, #051b17 100%);
+            color: white;
+            padding: 2rem 1.5rem;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 50;
+        }
+        .main-content {
+            margin-left: var(--sidebar-width);
+            flex-grow: 1;
+            padding: 2.5rem;
+            width: calc(100% - var(--sidebar-width));
+        }
+        .nav-link {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.875rem 1.25rem;
+            border-radius: 0.75rem;
+            transition: all 0.2s;
+            color: rgba(255, 255, 255, 0.6);
+            text-decoration: none;
+            margin-bottom: 0.5rem;
+        }
+        .nav-link:hover, .nav-link.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        .nav-link.active {
+            background: var(--primary);
+        }
+    </style>
+</head>
+<body>
+
+    <aside class="sidebar shadow-2xl">
+        <div class="flex items-center gap-3 mb-10 px-2">
+            <div class="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center backdrop-blur-md border border-white/20">
+                <span class="material-symbols-outlined text-white">school</span>
+            </div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-white">UniSched</h1>
+                <p class="text-[10px] uppercase tracking-widest text-white/40 font-bold">Admin Portal</p>
+            </div>
+        </div>
+
+        <nav class="flex-grow">
+            <a href="admin-dashboard.html" class="nav-link">
+                <span class="material-symbols-outlined">dashboard</span>
+                <span>Dashboard</span>
+            </a>
+            <a href="admin-teachers.html" class="nav-link active">
+                <span class="material-symbols-outlined">group</span>
+                <span>Enseignants</span>
+            </a>
+            <a href="validation-panel.html" class="nav-link">
+                <span class="material-symbols-outlined">task_alt</span>
+                <span>Validation Panel</span>
+            </a>
+        </nav>
+
+        <div class="pt-6 border-t border-white/10">
+            <div class="flex items-center gap-3 px-2 py-3 bg-white/5 rounded-xl border border-white/5 mb-4">
+                <div id="user-initials" class="w-10 h-10 bg-emerald-500 rounded-full flex items-center justify-center text-white font-bold">--</div>
+                <div class="overflow-hidden">
+                    <p id="user-name" class="text-sm font-bold truncate text-white">Admin</p>
+                    <p class="text-[10px] text-white/40 truncate text-white">admin@univ.edu</p>
+                </div>
+            </div>
+            <button id="logout-btn" class="w-full flex items-center gap-3 px-4 py-2 text-white/60 hover:text-red-400 transition-colors text-sm">
+                <span class="material-symbols-outlined">logout</span>
+                <span>Déconnexion</span>
+            </button>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <header class="flex justify-between items-center mb-10">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 tracking-tight">Répertoire des Enseignants</h2>
+                <p class="text-gray-500 mt-1">Gérez les membres du corps professoral et leurs affectations.</p>
+            </div>
+            <button class="bg-[#355f57] px-6 py-3 rounded-xl text-white font-bold shadow-lg hover:opacity-90 transition-all flex items-center gap-2">
+                <span class="material-symbols-outlined">person_add</span>
+                <span>Ajouter un Enseignant</span>
+            </button>
+        </header>
+
+        <div class="bg-white p-4 rounded-2xl shadow-sm border border-gray-100 mb-8">
+            <div class="relative">
+                <span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+                <input type="text" id="teacherSearch" class="w-full pl-10 pr-4 py-2 border border-gray-200 rounded-xl focus:ring-2 focus:ring-[#355f57] outline-none" placeholder="Rechercher par nom, email ou UE...">
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-gray-50 border-b border-gray-100">
+                        <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Enseignant</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Contact</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase">Unités d'Enseignement (UE)</th>
+                        <th class="px-6 py-4 text-xs font-bold text-gray-400 uppercase text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="teacher-table-body">
+                    <tr>
+                        <td colspan="4" class="px-6 py-10 text-center text-gray-400">Chargement des enseignants...</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script type="module">
+        const API_URL = "http://localhost:4000";
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            const token = localStorage.getItem('token');
+            if (!token) { window.location.href = '../login.html'; return; }
+
+            // 1. Charger Profil Admin (pour le nom en bas à gauche)
+            try {
+                const profileResp = await fetch(`${API_URL}/auth/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                if (profileResp.ok) {
+                    const user = await profileResp.json();
+                    document.getElementById('user-name').innerText = user.nom;
+                    document.getElementById('user-initials').innerText = user.nom.charAt(0).toUpperCase();
+                }
+            } catch (err) { console.error(err); }
+
+            // 2. Charger les Enseignants
+            async function loadTeachers() {
+                try {
+                    const response = await fetch(`${API_URL}/admin/enseignants`, {
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+                    
+                    if (!response.ok) throw new Error("Erreur serveur");
+                    
+                    const teachers = await response.json();
+                    const tbody = document.getElementById('teacher-table-body');
+                    tbody.innerHTML = '';
+
+                    teachers.forEach(t => {
+                        // On gère le cas où les UE sont une liste ou une chaîne
+                        const ueList = t.ues ? t.ues.split(',').map(ue => 
+                            `<span class="bg-emerald-50 text-emerald-700 text-[10px] px-2 py-1 rounded-md font-bold border border-emerald-100 mr-1">${ue.trim()}</span>`
+                        ).join('') : '<span class="text-gray-300 italic">Aucune UE</span>';
+
+                        const row = `
+                            <tr class="border-b border-gray-50 hover:bg-gray-50 transition-colors">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center gap-3">
+                                        <div class="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center font-bold text-[#355f57]">
+                                            ${t.nom.charAt(0)}
+                                        </div>
+                                        <div>
+                                            <p class="font-bold text-gray-900">${t.nom}</p>
+                                            <p class="text-[10px] text-gray-400 uppercase">ID: #${t.id}</p>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-sm text-gray-600">${t.email}</td>
+                                <td class="px-6 py-4">
+                                    <div class="flex flex-wrap gap-1">
+                                        ${ueList}
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="p-2 text-gray-400 hover:text-[#355f57] transition-colors">
+                                        <span class="material-symbols-outlined">edit</span>
+                                    </button>
+                                    <button class="p-2 text-gray-400 hover:text-red-500 transition-colors">
+                                        <span class="material-symbols-outlined">delete</span>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
+                        tbody.insertAdjacentHTML('beforeend', row);
+                    });
+                } catch (err) {
+                    document.getElementById('teacher-table-body').innerHTML = `<tr><td colspan="4" class="px-6 py-10 text-center text-red-500 font-bold">Impossible de charger les données.</td></tr>`;
+                }
+            }
+
+            loadTeachers();
+
+            // Déconnexion
+            document.getElementById('logout-btn').addEventListener('click', () => {
+                localStorage.clear();
+                window.location.href = '../login.html';
+            });
+        });
+    </script>
+</body>
+</html>

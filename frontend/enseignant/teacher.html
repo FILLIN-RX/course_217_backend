@@ -1,0 +1,189 @@
+
+
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UniSched | Mon Emploi du Temps</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#355f57",
+                        "secondary": "#E6E9EB",
+                        "accent": "#d8605d",
+                        "background-light": "#fafafa",
+                        "background-dark": "#16181d",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e2329",
+                        "text-main": "#30363F",
+                        "text-muted": "#6e7c7a",
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] },
+                    gridTemplateColumns: { 'schedule': '80px repeat(6, 1fr)' }
+                },
+            },
+        }
+    </script>
+    <style>
+        .bg-grid-pattern {
+            background-size: 40px 40px;
+            background-image: linear-gradient(to right, #f0f0f0 1px, transparent 1px), linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
+        }
+        .dark .bg-grid-pattern { background-image: linear-gradient(to right, #2a2f36 1px, transparent 1px), linear-gradient(to bottom, #2a2f36 1px, transparent 1px); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-gray-100 font-display transition-colors duration-200">
+    <div class="flex h-screen w-full overflow-hidden">
+        <aside class="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-surface-dark flex flex-col justify-between p-6 z-20">
+            <div class="flex flex-col gap-8">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                        <span class="material-symbols-outlined text-2xl">school</span>
+                    </div>
+                    <div>
+                        <h1 class="text-text-main dark:text-white text-lg font-bold leading-tight">UniSched</h1>
+                        <p class="text-text-muted text-xs font-medium uppercase">Portail Enseignant</p>
+                    </div>
+                </div>
+                <nav class="flex flex-col gap-2">
+                    <a class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 border-l-4 border-primary transition-all" href="#">
+                        <span class="material-symbols-outlined text-primary">calendar_month</span>
+                        <p class="text-primary font-bold text-sm">Mon Emploi du Temps</p>
+                    </a>
+                    <a class="group flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all" href="teacher-preferences.html">
+                        <span class="material-symbols-outlined text-text-muted">schedule</span>
+                        <p class="text-text-muted font-medium text-sm">Mes Disponibilités</p>
+                    </a>
+                </nav>
+            </div>
+            <div class="flex flex-col gap-4">
+    <div class="flex items-center gap-3 px-2">
+        <div id="user-avatar" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold border-2 border-white dark:border-gray-700 shadow-sm">
+            --
+        </div>
+        <div class="flex flex-col">
+            <p id="profile-name" class="text-sm font-bold text-text-main dark:text-white">Chargement...</p>
+            <p id="profile-dept" class="text-xs text-text-muted">Faculté</p>
+        </div>
+    </div>
+    <button id="logout-btn" class="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-text-main dark:text-gray-300 hover:bg-red-50 hover:text-red-600 transition-colors text-sm font-semibold shadow-sm">
+        <span class="material-symbols-outlined text-lg">logout</span>
+        <span>Déconnexion</span>
+    </button>
+</div>
+        </aside>
+
+        <main class="flex flex-col flex-1 overflow-hidden relative">
+            <div class="px-8 pt-8 pb-4 bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800">
+                <h2 class="text-3xl font-extrabold text-text-main dark:text-white tracking-tight">Planning Hebdomadaire</h2>
+                <p class="text-text-muted text-sm font-medium">Consultez vos cours et salles assignés</p>
+            </div>
+
+            <div class="flex-1 overflow-auto bg-gray-50 dark:bg-[#0f1115] p-6">
+                <div class="min-w-[1000px] bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
+                    <div class="grid grid-cols-schedule border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white dark:bg-surface-dark z-10">
+                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 flex items-center justify-center"><span class="text-xs font-bold text-text-muted uppercase">HEURE</span></div>
+                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Lundi</div>
+                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Mardi</div>
+                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Mercredi</div>
+                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Jeudi</div>
+                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Vendredi</div>
+                        <div class="p-4 text-center font-bold">Samedi</div>
+                    </div>
+
+                    <div class="flex-1 bg-grid-pattern relative">
+                        <table class="w-full border-collapse table-fixed" id="schedule-table">
+                            <tbody id="schedule-body">
+                                </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script type="module">
+    // Configuration
+    const API_URL = "http://localhost:4000";
+
+    async function loadUserProfile() {
+        const token = localStorage.getItem('token');
+        
+        if (!token) {
+            window.location.href = 'teacher-login.html';
+            return;
+        }
+
+        try {
+            const response = await fetch(`${API_URL}/auth/profile`, {
+                method: 'GET',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            if (response.ok) {
+                const userData = await response.json();
+                
+                // 1. Mise à jour du nom
+                document.getElementById('profile-name').textContent = userData.nom;
+                
+                // 2. Création des initiales (ex: "John Doe" -> "JD")
+                const initials = userData.nom
+                    .split(' ')
+                    .map(word => word[0])
+                    .join('')
+                    .toUpperCase()
+                    .substring(0, 2);
+                document.getElementById('user-avatar').textContent = initials;
+
+                // 3. Optionnel : Afficher le rôle ou département
+                document.getElementById('profile-dept').textContent = userData.role === 'ENSEIGNANT' ? 'Enseignant' : 'Administrateur';
+                
+                // Charger l'emploi du temps après avoir validé le profil
+                loadTeacherSchedule(token);
+                
+            } else {
+                // Si le token est invalide ou expiré
+                localStorage.clear();
+                window.location.href = 'teacher-login.html';
+            }
+        } catch (error) {
+            console.error("Erreur de profil:", error);
+        }
+    }
+
+    async function loadTeacherSchedule(token) {
+        try {
+            const res = await fetch(`${API_URL}/enseignant/emplois-du-temps/detail`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const schedule = await res.json();
+            // Appeler ici ta fonction de rendu de la grille (renderSchedule)
+            console.log("Planning chargé:", schedule);
+        } catch (err) {
+            console.error("Erreur planning:", err);
+        }
+    }
+
+    // Gestion de la déconnexion
+    document.getElementById('logout-btn').addEventListener('click', () => {
+        localStorage.clear();
+        window.location.href = 'login.html';
+    });
+
+    // Lancement au chargement
+    window.onload = loadUserProfile;
+</script>
+</body>
+</html>

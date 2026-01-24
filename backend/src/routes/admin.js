@@ -1,9 +1,10 @@
 import express from 'express';
-import * as adminController from '../controllers/adminController.js';
+import * as adminController from '../controllers/admin.controller.js';
 import {createClasse, getClasses, updateClasse, deleteClasse} from '../controllers/classe.controller.js';
-import {createEnseignant, getEnseignants, updateEnseignant, deleteEnseignant} from '../controllers/enseignant.controller.js';
-import { getFilieres} from '../controllers/Filier.controller.js';
-import { getUEs} from '../controllers/ue.controller.js';
+import { getFilieres, createFiliere, updateFiliere, deleteFiliere} from '../controllers/filiere.controller.js';
+import { getUEs, createUE, updateUE, deleteUE} from '../controllers/ue.controller.js';
+import { createSalle, getSalles, updateSalle, deleteSalle } from '../controllers/salle.controller.js';
+import { getPlages } from '../controllers/plage.controller.js';
 import { authenticateToken, authorizeRole } from '../middlewares/auth.js';
 
 const router = express.Router();
@@ -14,26 +15,40 @@ router.get('/departements', adminController.getDepartements);
 
 
 router.get('/filieres', getFilieres);
+router.post('/filieres', authenticateToken, authorizeRole(['ADMIN']), createFiliere);
+router.put('/filieres/:id', authenticateToken, authorizeRole(['ADMIN']), updateFiliere);
+router.delete('/filieres/:id', authenticateToken, authorizeRole(['ADMIN']), deleteFiliere);
 
-// --- Enseignants ---
-router.post('/enseignants', authenticateToken, authorizeRole(['ADMIN']), createEnseignant);
-router.get('/enseignants', authenticateToken, authorizeRole(['ADMIN']), getEnseignants);
-router.put('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), updateEnseignant);
-router.delete('/enseignants/:id', authenticateToken, authorizeRole(['ADMIN']), deleteEnseignant);
+
 
 
 router.get('/ues', getUEs);
+router.post('/ues', authenticateToken, authorizeRole(['ADMIN']), createUE);
+router.put('/ues/:id', authenticateToken, authorizeRole(['ADMIN']), updateUE);
+router.delete('/ues/:id', authenticateToken, authorizeRole(['ADMIN']), deleteUE);
 
 
-// --- Salles ---
-router.post('/salles', authenticateToken, authorizeRole(['ADMIN']), createClasse);
-router.get('/salles', authenticateToken, authorizeRole(['ADMIN']), getClasses);
-router.put('/salles/:id', authenticateToken, authorizeRole(['ADMIN']), updateClasse);
-router.delete('/salles/:id', authenticateToken, authorizeRole(['ADMIN']), deleteClasse);
+// --- Salles (Rooms) ---
+router.post('/salles', authenticateToken, authorizeRole(['ADMIN']), createSalle);
+router.get('/salles', authenticateToken, authorizeRole(['ADMIN']), getSalles);
+router.put('/salles/:id', authenticateToken, authorizeRole(['ADMIN']), updateSalle);
+router.delete('/salles/:id', authenticateToken, authorizeRole(['ADMIN']), deleteSalle);
 
-// --- Validation emploi du temps ---
-router.post('/emplois-du-temps/valider', authenticateToken, authorizeRole(['ADMIN']), adminController.validerEmploiDuTemps);
-router.post('/emplois-du-temps/generer-optimise', authenticateToken, authorizeRole(['ADMIN']), adminController.genererEmploiDuTempsOptimise);
+// --- Plages (Time Slots) ---
+router.get('/plages', getPlages);
+
+// --- Grille des disponibilités pour l'admin ---
+router.get('/disponibilites-grille', adminController.getGrilleDisponibilitesOption);
+
+// --- UEs d'un enseignant ---
+router.get('/ues-enseignant/:enseignant_id', adminController.getUesEnseignant);
+
+// --- Classes (Groups) ---
+router.post('/classes', authenticateToken, authorizeRole(['ADMIN']), createClasse);
+router.get('/classes', authenticateToken, authorizeRole(['ADMIN']), getClasses);
+router.put('/classes/:id', authenticateToken, authorizeRole(['ADMIN']), updateClasse);
+router.delete('/classes/:id', authenticateToken, authorizeRole(['ADMIN']), deleteClasse);
+
 
 
 export default router;

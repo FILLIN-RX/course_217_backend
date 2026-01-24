@@ -1,21 +1,25 @@
-const express = require('express');
+import express from 'express';
+import { 
+    submitDisponibilite,
+    getDisponibilites,
+    getEmploiDuTempsDetail 
+} from '../controllers/enseignant.controller.js';
+import { authenticateToken, authorizeRole } from '../middlewares/auth.js';
+
 const router = express.Router();
-const enseignantController = require('../controllers/enseignantController');
-const { authenticateToken, authorizeRole } = require('../middleware/auth');
 
 // Soumettre une disponibilité
-router.post('/disponibilites', authenticateToken, authorizeRole(['ENSEIGNANT']), enseignantController.submitDisponibilite);
+router.post('/disponibilite', authenticateToken, authorizeRole(['ENSEIGNANT']), submitDisponibilite);
 
-// Modifier une disponibilité
-router.put('/disponibilites', authenticateToken, authorizeRole(['ENSEIGNANT']), enseignantController.updateDisponibilite);
+// Consulter ses disponibilités soumises
+router.get('/disponibilites', authenticateToken, authorizeRole(['ENSEIGNANT']), getDisponibilites);
 
 // Consulter emploi du temps détaillé
 router.get(
     '/emplois-du-temps/detail',
     authenticateToken,
     authorizeRole(['ENSEIGNANT']),
-    enseignantController.getEmploiDuTempsDetail
+    getEmploiDuTempsDetail
 );
 
-
-module.exports = router;
+export default router;

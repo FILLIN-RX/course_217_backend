@@ -26,7 +26,10 @@ export const authenticateToken = (req, res, next) => {
 // Vérifie si l'utilisateur possède le bon rôle pour cette action
 export const authorizeRole = (roles) => {
     return (req, res, next) => {
+        console.log(`[Auth] Checking role for user ${req.user?.id}. Role: '${req.user?.role}'. Required: [${roles}]`);
+        
         if (!req.user || !roles.includes(req.user.role)) {
+            console.warn(`[Auth] Access denied. User role: '${req.user?.role}', Required: '${roles}'`);
             return res.status(403).json({ 
                 message: `Accès interdit : rôle(s) requis [${roles}]` 
             });

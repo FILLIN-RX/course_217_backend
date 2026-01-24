@@ -1,6 +1,10 @@
 import app from "./app.js";
-import * as departementController from "./controllers/adminController.js";
-import { seedUEs } from "./controllers/ue.controller.js"; 
+import { seedDepartements } from "./controllers/admin.controller.js";
+import { seedFilieres } from "./controllers/filiere.controller.js";
+import { seedClasses } from "./controllers/classe.controller.js";
+import { seedUEs } from "./controllers/ue.controller.js";
+import { seedPlages } from "./controllers/plage.controller.js";
+import { seedSemestres } from "./controllers/semestre.controller.js";
 
 const PORT = process.env.PORT || 3000;
 
@@ -9,8 +13,12 @@ app.listen(PORT, async () => {
   
   try {
     console.log("🌱 Tentative de seeding...");
-    await departementController.seedDepartements();
+    await seedDepartements();
+    await seedFilieres();
+    await seedClasses();
+    await seedSemestres();
     await seedUEs();
+    await seedPlages();
     console.log("✅ Seeding terminé.");
   } catch (error) {
     console.error("❌ Erreur Seeding:", error.message);

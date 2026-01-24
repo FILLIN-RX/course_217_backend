@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>UniSched | Connexion</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: radial-gradient(circle, #0a483a, #000); color: white; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+    <div class="glass p-10 rounded-2xl w-96 shadow-2xl border-t-4 border-emerald-500">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-black text-emerald-500">UniSched</h1>
+            <p class="text-gray-400">Connexion unique</p>
+        </div>
+
+        <form id="loginForm" class="space-y-6">
+            <input type="email" id="email" placeholder="Email" required class="w-full p-4 rounded-xl bg-white/5 border border-white/10 focus:border-emerald-500 outline-none">
+            <input type="password" id="password" placeholder="Mot de passe" required class="w-full p-4 rounded-xl bg-white/5 border border-white/10 focus:border-emerald-500 outline-none">
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 p-4 rounded-xl font-bold uppercase tracking-widest transition-all">Se Connecter</button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="register.html" class="text-sm text-gray-400 hover:text-emerald-400">Pas de compte ? S'inscrire ici</a>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+
+            try {
+                const res = await fetch("http://localhost:4000/auth/login", {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    localStorage.setItem('token', data.token);
+                    localStorage.setItem('role', data.user.role);
+                    
+                    // Redirection intelligente selon le rôle
+                    if(data.user.role === 'ADMIN') {
+                        window.location.href = "admin/admin-dashboard.html";
+                    } else {
+                        window.location.href = "enseignant/teacher.html";
+                    }
+                } else {
+                    alert(data.message);
+                }
+            } catch (err) {
+                alert("Erreur de connexion au serveur port 4000");
+            }
+        });
+    </script>
+</body>
+</html>

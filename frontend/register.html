@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>UniSched | Inscription</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #051b17; color: white; font-family: 'Inter', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4">
+    <div class="glass p-8 rounded-2xl w-full max-width-[500px] shadow-2xl">
+        <h2 class="text-3xl font-bold text-center mb-6 text-emerald-400">Créer un compte</h2>
+        
+        <form id="regForm" class="space-y-4">
+            <input type="text" id="nom" placeholder="Nom complet" required class="w-full p-3 rounded bg-white/10 border border-white/20">
+            <input type="email" id="email" placeholder="Email" required class="w-full p-3 rounded bg-white/10 border border-white/20">
+            
+            <select id="role" class="w-full p-3 rounded bg-white/10 border border-white/20 text-emerald-400 font-bold">
+                <option value="ENSEIGNANT">Enseignant</option>
+                <option value="ADMIN">Administrateur</option>
+            </select>
+
+            <div id="ue-section">
+                <label class="block mb-2 text-sm text-gray-400">Sélectionnez vos matières (UE) :</label>
+                <select id="ues" multiple class="w-full p-3 rounded bg-white/10 border border-white/20 h-32">
+                    </select>
+                <p class="text-xs text-gray-500 mt-1">(Maintenez Ctrl pour en choisir plusieurs)</p>
+            </div>
+
+            <input type="password" id="password" placeholder="Mot de passe" required class="w-full p-3 rounded bg-white/10 border border-white/20">
+            
+            <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 p-3 rounded font-bold transition">S'inscrire</button>
+        </form>
+    </div>
+
+    <script>
+        const API_URL = "http://localhost:4000/auth";
+
+        // Charger les UEs depuis la base de données au chargement
+        async function loadUEs() {
+            try {
+                // Note: Créez une route simple GET /ues dans votre backend pour ceci
+                const res = await fetch("http://localhost:4000/admin/ues"); 
+                const ues = await res.json();
+                const select = document.getElementById('ues');
+                ues.forEach(ue => {
+                    select.innerHTML += `<option value="${ue.id}">${ue.code} - ${ue.intitule}</option>`;
+                });
+            } catch (e) { console.error("Erreur chargement UEs"); }
+        }
+        loadUEs();
+
+        // Masquer les UEs si Admin
+        document.getElementById('role').addEventListener('change', (e) => {
+            document.getElementById('ue-section').style.display = e.target.value === 'ADMIN' ? 'none' : 'block';
+        });
+
+        document.getElementById('regForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const role = document.getElementById('role').value;
+            const selectedUes = Array.from(document.getElementById('ues').selectedOptions).map(o => o.value);
+
+            const payload = {
+                nom: document.getElementById('nom').value,
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value,
+                role: role,
+                ues: role === 'ENSEIGNANT' ? selectedUes : []
+            };
+
+            const res = await fetch(`${API_URL}/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            if(res.ok) {
+                alert("Compte créé !");
+                window.location.href = "login.html";
+            } else {
+                alert(data.message);
+            }
+        });
+    </script>
+</body>
+</html>
