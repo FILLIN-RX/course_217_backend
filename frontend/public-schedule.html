@@ -321,9 +321,53 @@
             if (col) col.innerHTML = '';
         });
 
-        // TODO: Fetch schedule from API
-        // For now, showing empty calendar
-        document.getElementById('last-updated').textContent = `Dernière mise à jour: ${new Date().toLocaleString('fr-FR')}`;
+        try {
+            const resp = await fetch(`${API_URL}/public/schedule/${classeId}/${semestreId}`);
+            const assignments = await resp.json();
+            console.log("Assignments chargés:", assignments);
+            
+            assignments.forEach(assign => {
+                renderCourse(assign);
+            });
+
+            document.getElementById('last-updated').textContent = `Dernière mise à jour: ${new Date().toLocaleString('fr-FR')}`;
+        } catch (err) {
+            console.error('Erreur chargement emploi du temps:', err);
+            alert("Erreur lors du chargement de l'emploi du temps.");
+        }
+    }
+
+    function renderCourse(assign) {
+        const col = document.querySelector(`[data-day="${assign.jour}"]`);
+        if (!col) return;
+
+        // Calculer la position (chaque heure = 60px)
+        const startH = parseInt(assign.heure_debut.split(':')[0]);
+        const startM = parseInt(assign.heure_debut.split(':')[1]);
+        const endH = parseInt(assign.heure_fin.split(':')[0]);
+        const endM = parseInt(assign.heure_fin.split(':')[1]);
+
+        const top = (startH - 8) * 60 + (startM / 60 * 60);
+        const durationMin = (endH * 60 + endM) - (startH * 60 + startM);
+        const height = (durationMin / 60) * 60;
+
+        const el = document.createElement('div');
+        el.className = "absolute left-1 right-1 course-block bg-primary/10 border-l-4 border-primary rounded-lg p-2 overflow-hidden shadow-sm";
+        el.style.top = `${top}px`;
+        el.style.height = `${height}px`;
+        el.innerHTML = `
+            <p class="text-[10px] font-bold text-primary leading-tight">${assign.ue_code}</p>
+            <p class="text-[11px] font-black text-gray-900 truncate">${assign.ue_intitule}</p>
+            <div class="mt-1 flex flex-col gap-0.5">
+                <span class="flex items-center gap-1 text-[9px] text-gray-500 font-medium">
+                    <span class="material-symbols-outlined text-[10px]">person</span> ${assign.enseignant_nom}
+                </span>
+                <span class="flex items-center gap-1 text-[9px] text-gray-500 font-medium">
+                    <span class="material-symbols-outlined text-[10px]">location_on</span> ${assign.salle_nom}
+                </span>
+            </div>
+        `;
+        col.appendChild(el);
     }
 
     init();

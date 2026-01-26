@@ -6,11 +6,11 @@ import { seedUEs } from "./controllers/ue.controller.js";
 import { seedPlages } from "./controllers/plage.controller.js";
 import { seedSemestres } from "./controllers/semestre.controller.js";
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 4000;
 
 app.listen(PORT, async () => {
   console.log(`🚀 Serveur lancé sur http://localhost:${PORT}`);
-  
+
   try {
     console.log("🌱 Tentative de seeding...");
     await seedDepartements();
