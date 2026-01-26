@@ -249,6 +249,15 @@ export const getGrilleDisponibilitesOption = async (req, res) => {
       params.push(semestre_id);
     }
 
+    // Exclure les disponibilités déjà assignées à un cours
+    query += ` AND NOT EXISTS (
+        SELECT 1 FROM emplois_du_temps et
+        JOIN enseignant_ues eu2 ON et.ue_id = eu2.ue_id
+        WHERE et.plage_id = ph.id 
+        AND eu2.enseignant_id = e.id
+        AND et.semestre_id = de.semestre_id
+    )`;
+
     query += ` GROUP BY ph.id, e.id, de.semestre_id`;
     const [rows] = await db.query(query, params);
 

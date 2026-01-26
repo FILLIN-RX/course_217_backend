@@ -26,7 +26,7 @@ export const getPublicSchedule = async (req, res) => {
             LEFT JOIN enseignants e ON eu.enseignant_id = e.id
             JOIN salles s ON et.salle_id = s.id
             JOIN plages_horaires ph ON et.plage_id = ph.id
-            WHERE et.classe_id = ? AND et.semestre_id = ?
+            WHERE et.classe_id = ? AND et.semestre_id = ? AND et.statut = 'VALIDE'
             ORDER BY ph.jour, ph.heure_debut
         `,
       [classe_id, semestre_id],
