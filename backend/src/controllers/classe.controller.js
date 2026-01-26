@@ -20,9 +20,12 @@ export const seedClasses = async () => {
         });
       });
 
-      await db.query("INSERT INTO classes (nom, filiere_id) VALUES ?", [
-        classes,
-      ]);
+      for (const cls of classes) {
+        await db.query(
+          "INSERT INTO classes (nom, filiere_id) VALUES (?, ?)",
+          cls,
+        );
+      }
       console.log("✅ Classes seeded.");
     }
   } catch (err) {
@@ -33,11 +36,12 @@ export const seedClasses = async () => {
 export const createClasse = async (req, res) => {
   const { nom, filiere_id } = req.body;
   try {
-    const [result] = await db.query(
-      "INSERT INTO classes (nom, filiere_id) VALUES (?, ?)",
-      [nom, filiere_id],
-    );
-    res.status(201).json({ message: "Classe créée", id: result.insertId });
+    await db.query("INSERT INTO classes (nom, filiere_id) VALUES (?, ?)", [
+      nom,
+      filiere_id,
+    ]);
+    const [rows] = await db.query("SELECT last_insert_rowid() as id");
+    res.status(201).json({ message: "Classe créée", id: rows[0].id });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur serveur" });
@@ -86,8 +90,8 @@ export const setEffectif = async (req, res) => {
   const { classe_id, semestre_id, annee_id, effectif } = req.body;
   try {
     await db.query(
-      "INSERT INTO classe_effectifs (classe_id, semestre_id, annee_id, effectif) VALUES (?, ?, ?, ?) ON DUPLICATE KEY UPDATE effectif=?",
-      [classe_id, semestre_id, annee_id, effectif, effectif],
+      "INSERT INTO classe_effectifs (classe_id, semestre_id, annee_id, effectif) VALUES (?, ?, ?, ?) ON CONFLICT(classe_id, semestre_id, annee_id) DO UPDATE SET effectif=excluded.effectif",
+      [classe_id, semestre_id, annee_id, effectif],
     );
     res.json({ message: "Effectif mis à jour" });
   } catch (err) {

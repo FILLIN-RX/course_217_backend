@@ -38,7 +38,7 @@ export const submitDisponibilite = async (req, res) => {
       return res.json({ message: "Préférence mise à jour." });
     }
 
-    const [insert] = await db.query(
+    await db.query(
       "INSERT INTO disponibilites_enseignants (enseignant_id, plage_id, semestre_id, prefere) VALUES (?, ?, ?, ?)",
       [enseignant_id, plage_id, semestre_id, prefere],
     );
@@ -105,7 +105,7 @@ export const getDisponibilites = async (req, res) => {
       params.push(semestre_id);
     }
 
-    query += ` ORDER BY FIELD(ph.jour,'Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'), ph.heure_debut`;
+    query += ` ORDER BY CASE ph.jour WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 WHEN 'Mercredi' THEN 3 WHEN 'Jeudi' THEN 4 WHEN 'Vendredi' THEN 5 WHEN 'Samedi' THEN 6 END, ph.heure_debut`;
 
     const [rows] = await db.query(query, params);
     res.json(rows);

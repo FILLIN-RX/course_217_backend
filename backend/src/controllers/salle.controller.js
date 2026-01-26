@@ -14,7 +14,12 @@ export const seedSalles = async () => {
         ["Labo Info 1", 30],
         ["Labo Info 2", 30],
       ];
-      await db.query("INSERT INTO salles (nom, capacite) VALUES ?", [salles]);
+      for (const salle of salles) {
+        await db.query(
+          "INSERT INTO salles (nom, capacite) VALUES (?, ?)",
+          salle,
+        );
+      }
       console.log("✅ Salles seeded.");
     }
   } catch (err) {
@@ -25,11 +30,12 @@ export const seedSalles = async () => {
 export const createSalle = async (req, res) => {
   const { nom, capacite } = req.body;
   try {
-    const [result] = await db.query(
-      "INSERT INTO salles (nom, capacite) VALUES (?, ?)",
-      [nom, capacite],
-    );
-    res.status(201).json({ message: "Salle créée", id: result.insertId });
+    await db.query("INSERT INTO salles (nom, capacite) VALUES (?, ?)", [
+      nom,
+      capacite,
+    ]);
+    const [rows] = await db.query("SELECT last_insert_rowid() as id");
+    res.status(201).json({ message: "Salle créée", id: rows[0].id });
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erreur serveur" });

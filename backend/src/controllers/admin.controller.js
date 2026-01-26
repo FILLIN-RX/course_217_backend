@@ -74,7 +74,7 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
 
     // 4. Get all Time Slots
     const [plages] = await db.query(
-      "SELECT * FROM plages_horaires ORDER BY FIELD(jour,'Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'), heure_debut",
+      "SELECT * FROM plages_horaires ORDER BY CASE jour WHEN 'Lundi' THEN 1 WHEN 'Mardi' THEN 2 WHEN 'Mercredi' THEN 3 WHEN 'Jeudi' THEN 4 WHEN 'Vendredi' THEN 5 WHEN 'Samedi' THEN 6 END, heure_debut",
     );
 
     let nonAffectees = [];
@@ -131,15 +131,19 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
           if (isAvailable.length === 0) continue;
 
           // Place the UE
-          const [insert] = await db.query(
+          // Place the UE
+          await db.query(
             "INSERT INTO emplois_du_temps (ue_id, salle_id, classe_id, plage_id, semestre_id, annee_id, statut) VALUES (?, ?, ?, ?, ?, ?, 'BROUILLON')",
             [ue.id, salle.id, ue.classe_id, plage.id, semestre_id, annee_id],
           );
 
+          const [idRows] = await db.query("SELECT last_insert_rowid() as id");
+          const newId = idRows[0].id;
+
           await logAction(
             "PLACEMENT_AUTO",
             "emplois_du_temps",
-            insert.insertId,
+            newId,
             userId,
             null,
             { ue_id: ue.id, salle_id: salle.id, plage_id: plage.id },
@@ -209,11 +213,12 @@ export const getSalles = async (req, res) => {
 export const createSalle = async (req, res) => {
   const { nom, capacite } = req.body;
   try {
-    const [result] = await db.query(
-      "INSERT INTO salles (nom, capacite) VALUES (?, ?)",
-      [nom, capacite],
-    );
-    res.status(201).json({ id: result.insertId, nom, capacite });
+    await db.query("INSERT INTO salles (nom, capacite) VALUES (?, ?)", [
+      nom,
+      capacite,
+    ]);
+    const [rows] = await db.query("SELECT last_insert_rowid() as id");
+    res.status(201).json({ id: rows[0].id, nom, capacite });
   } catch (err) {
     res.status(500).json({ message: "Erreur serveur" });
   }
@@ -234,7 +239,7 @@ export const getGrilleDisponibilitesOption = async (req, res) => {
         e.nom,
         de.semestre_id,
         -- On ajoute IFNULL pour éviter le vide total
-        IFNULL(GROUP_CONCAT(DISTINCT u.code SEPARATOR ', '), 'Aucune UE') as ues_codes
+        IFNULL(GROUP_CONCAT(u.code, ', '), 'Aucune UE') as ues_codes
     FROM plages_horaires ph
     JOIN disponibilites_enseignants de ON ph.id = de.plage_id
     JOIN enseignants e ON de.enseignant_id = e.id
@@ -270,7 +275,7 @@ export const getGrilleDisponibilitesOption = async (req, res) => {
         id: row.enseignant_id,
         nom: row.nom,
         semestre: row.semestre_id,
-        ues: row.ues_codes, // Ajouter la liste des UEs
+        ues: [...new Set((row.ues_codes || "").split(", "))].join(", "), // Nettoyage doublons JS
       });
       return acc;
     }, {});

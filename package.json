@@ -7,6 +7,7 @@
   "scripts": {
     "start": "electron .",
     "dev": "nodemon backend/src/server.js",
+    "init-db": "node backend/init-db.js",
     "package": "electron-forge package",
     "make": "electron-forge make"
   },
@@ -15,13 +16,13 @@
   "license": "ISC",
   "dependencies": {
     "bcryptjs": "^3.0.3",
+    "better-sqlite3": "^12.6.2",
     "cors": "^2.8.5",
     "dotenv": "^16.4.5",
     "electron-is-dev": "^2.0.0",
     "express": "^4.19.2",
     "jsonwebtoken": "^9.0.3",
-    "morgan": "^1.10.1",
-    "mysql2": "^3.9.7"
+    "morgan": "^1.10.1"
   },
   "devDependencies": {
     "@electron-forge/cli": "^7.4.0",
