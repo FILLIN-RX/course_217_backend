@@ -154,19 +154,36 @@
     let selectedSlots = {}; // { "plage_id": true/false (prefere) }
     let submittedSlots = {}; // Disponibilités déjà soumises (disabled)
 
+    let realPlages = []; // Stocker les vraies plages du backend
+
     async function init() {
         const token = localStorage.getItem('token');
         if (!token) { window.location.href = 'teacher-login.html'; return; }
 
         try {
-            const resp = await fetch(`${API_URL}/auth/profile`, {
+            // 1. Charger Profil
+            const respProto = await fetch(`${API_URL}/auth/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (resp.ok) {
-                const user = await resp.json();
+            if (respProto.ok) {
+                const user = await respProto.json();
                 document.getElementById('profile-name').textContent = user.nom;
                 document.getElementById('user-avatar').textContent = user.nom.substring(0,2).toUpperCase();
             }
+
+            // 2. Charger les vraies plages horaires depuis la BD
+            // On utilise l'endpoint public ou admin pour avoir la liste de référence
+            // Si l'endpoint admin est protégé, on peut créer un endpoint public ou utiliser celui de l'enseignant s'il existe
+            // Ici j'utilise admin/plages car c'est souvent ouvert en lecture ou je suppose que l'enseignant peut le lire
+            // Sinon il faut ajouter une route router.get('/plages', ...) dans enseignant.js
+            const respPlages = await fetch(`${API_URL}/admin/plages`); 
+            if(respPlages.ok) {
+                realPlages = await respPlages.json();
+                console.log("Plages chargées depuis la BD:", realPlages);
+            } else {
+                console.error("Impossible de charger les plages horaires configuration.");
+            }
+
         } catch (e) { console.error(e); }
 
         await loadSubmittedAvailabilities();
@@ -191,11 +208,15 @@
                 
                 submittedSlots = {};
                 dispos.forEach(d => {
-                    submittedSlots[d.plage_id] = d.prefere;
+                    // DEBUG: Voir à quoi ressemble l'objet
+                    if(Object.keys(submittedSlots).length === 0) console.log('Objet dispo brut:', d);
+                    
+                    // Force l'ID en entier pour être sûr (fallback sur d.id si plage_id absent)
+                    const pId = d.plage_id !== undefined ? d.plage_id : d.id;
+                    submittedSlots[parseInt(pId)] = d.prefere;
                 });
                 
-                console.log('Créneaux soumis chargés:', submittedSlots);
-                console.log('Nombre de créneaux:', Object.keys(submittedSlots).length);
+                console.log('Créneaux soumis chargés (keys):', Object.keys(submittedSlots));
             }
         } catch (e) {
             console.error('Erreur chargement disponibilités:', e);
@@ -219,26 +240,59 @@
             grid.appendChild(labelDiv);
             
             days.forEach(day => {
-                // Simulation d'un ID de plage
-                const virtualPlageId = (hours.indexOf(time) * 6) + days.indexOf(day) + 1;
-                
+                // Trouver le vrai ID en cherchant dans realPlages
+                // Format attendu en BD: jour='Lundi', heure_debut='08:00:00'
+                // Attention au format de l'heure (H:i vs H:i:s)
+                const foundPlage = realPlages.find(p => 
+                    p.jour === day && 
+                    p.heure_debut.startsWith(time) // '08:00:00' starts with '08:00'
+                );
+
                 const cell = document.createElement('div');
                 
-                // Vérifier si cette plage est déjà soumise
-                const isSubmitted = submittedSlots.hasOwnProperty(virtualPlageId);
-                
-                if (isSubmitted) {
-                    // Cellule grisée et disabled
-                    const isPrefered = submittedSlots[virtualPlageId];
-                    cell.className = "h-14 border-b border-l border-border-light flex items-center justify-center opacity-60 cursor-not-allowed";
-                    cell.style.backgroundColor = isPrefered ? '#d1fae5' : '#fee2e2';
-                    cell.innerHTML = `<span class="material-symbols-outlined text-sm text-gray-500">${isPrefered ? 'done' : 'close'}</span>`;
-                    cell.title = isPrefered ? 'Disponible (soumis)' : 'Occupé (soumis)';
+                if (foundPlage) {
+                    const plageId = parseInt(foundPlage.id);
+                    
+                    // Vérifier si cette plage est déjà soumise
+                    const isSubmitted = submittedSlots.hasOwnProperty(plageId);
+                    
+                    // DEBUG: Seulement pour les premiers éléments pour ne pas spammer
+                    if (index === 0 && days.indexOf(day) === 0) {
+                        console.log(`Check Plage ${plageId}: Submitted? ${isSubmitted}`, submittedSlots);
+                    }
+
+                    if (isSubmitted) {
+                        const isPrefered = submittedSlots[plageId];
+                        cell.className = "h-14 border-b border-l border-border-light flex items-center justify-center cursor-not-allowed";
+                        // Simplification du style pour être sûr
+                        cell.style.backgroundColor = isPrefered ? '#d1fae5' : '#fee2e2';
+                        cell.style.opacity = '0.6';
+                        cell.innerHTML = `<span class="material-symbols-outlined text-sm text-gray-500">${isPrefered ? 'done' : 'close'}</span>`;
+                        cell.title = isPrefered ? 'Disponible (soumis)' : 'Occupé (soumis)';
+                    } else {
+                        // Cellule normale cliquable
+                        cell.className = "h-14 border-b border-l border-border-light cursor-pointer grid-cell hover:bg-emerald-50/30 flex items-center justify-center";
+                        cell.dataset.plageId = plageId; // Vrai ID
+                        cell.onclick = () => toggleCell(cell, plageId);
+                        
+                        // Restaurer l'état visuel si sélectionné mais pas encore soumis (brouillon local)
+                        if (selectedSlots[plageId] !== undefined) {
+                             if (selectedSlots[plageId]) {
+                                cell.classList.add('cell-selected-available');
+                                cell.innerHTML = '<span class="material-symbols-outlined text-sm">done</span>';
+                            } else {
+                                cell.classList.add('cell-selected-unavailable');
+                                cell.innerHTML = '<span class="material-symbols-outlined text-sm">close</span>';
+                            }
+                        }
+                    }
                 } else {
-                    // Cellule normale cliquable
-                    cell.className = "h-14 border-b border-l border-border-light cursor-pointer grid-cell hover:bg-emerald-50/30 flex items-center justify-center";
-                    cell.dataset.plageId = virtualPlageId;
-                    cell.onclick = () => toggleCell(cell, virtualPlageId);
+                    // Pas de plage correspondante en BD
+                    // DEBUG: Afficher quel jour/heure pose problème
+                    if (index === 0) console.warn(`Mapping impossible pour ${day} ${time} -> Aucune plage correspondante dans realPlages`, realPlages);
+                    
+                    cell.className = "h-14 border-b border-l border-border-light bg-gray-100 flex items-center justify-center";
+                    cell.title = "Pas de créneau configuré";
                 }
                 
                 grid.appendChild(cell);

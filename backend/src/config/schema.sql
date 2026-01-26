@@ -23,6 +23,9 @@ CREATE TABLE annees_academiques (
   libelle VARCHAR(20) NOT NULL
 );
 
+
+INSERT INTO annees_academiques (id, libelle) VALUES (1, '2023-2024');
+
 CREATE TABLE semestres (
   id INT AUTO_INCREMENT PRIMARY KEY,
   nom VARCHAR(20) NOT NULL
@@ -119,17 +122,17 @@ CREATE TABLE disponibilites_enseignants (
 CREATE TABLE emplois_du_temps (
   id INT AUTO_INCREMENT PRIMARY KEY,
   ue_id INT NOT NULL,
-  salle_id INT NOT NULL,
+  classe_id INT NOT NULL,
   plage_id INT NOT NULL,
   semestre_id INT NOT NULL,
   annee_id INT NOT NULL,
   statut ENUM('BROUILLON','VALIDE') DEFAULT 'BROUILLON',
   FOREIGN KEY (ue_id) REFERENCES ues(id),
-  FOREIGN KEY (salle_id) REFERENCES salles(id),
+  FOREIGN KEY (classe_id) REFERENCES classes(id),
   FOREIGN KEY (plage_id) REFERENCES plages_horaires(id),
   FOREIGN KEY (semestre_id) REFERENCES semestres(id),
   FOREIGN KEY (annee_id) REFERENCES annees_academiques(id),
-  UNIQUE (plage_id, salle_id),
+  UNIQUE (plage_id, classe_id),
   UNIQUE (plage_id, ue_id)
 );
 

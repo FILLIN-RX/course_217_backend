@@ -70,7 +70,8 @@ export const getDisponibilites = async (req, res) => {
     if (!enseignant_id) return res.status(400).json({ message: "ID Enseignant manquant." });
 
     try {
-        let query = `SELECT d.*, ph.jour, ph.heure_debut, ph.heure_fin 
+        // Sélection explicite pour éviter toute ambiguïté
+        let query = `SELECT d.id, d.enseignant_id, d.plage_id, d.prefere, d.semestre_id, ph.jour, ph.heure_debut, ph.heure_fin 
              FROM disponibilites_enseignants d
              JOIN plages_horaires ph ON d.plage_id = ph.id
              WHERE d.enseignant_id = ?`;

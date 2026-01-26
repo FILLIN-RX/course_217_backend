@@ -167,8 +167,8 @@
                 </select>
             </div>
             <div>
-                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Salle</label>
-                <select id="modal-salles" class="w-full border p-2.5 rounded-lg" required></select>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Classe</label>
+                <input type="text" id="modal-classe" class="w-full border p-2.5 rounded-lg bg-gray-50 text-gray-500 font-medium" placeholder="Classe associée..." readonly>
             </div>
             
             <div class="flex gap-3 pt-4">
@@ -192,7 +192,22 @@
 
     async function init() {
         const token = localStorage.getItem('token');
-        if (!token) { window.location.href = '../login.html'; return; }
+        const role = localStorage.getItem('role');
+        
+        console.log("=== SESSION INFO ===");
+        console.log("Role en local:", role);
+        console.log("Token présent:", !!token);
+
+        if (!token) { 
+            window.location.href = '../login.html'; 
+            return; 
+        }
+
+        if (role !== 'ADMIN') {
+            alert("Accès refusé : Vous devez être Administrateur.");
+            window.location.href = '../login.html';
+            return;
+        }
 
         await loadData();
     }
@@ -232,7 +247,6 @@
             });
 
             renderGrid(plages);
-            fillSalles(salles);
         } catch (err) {
             console.error('Erreur chargement données:', err);
         }
@@ -260,9 +274,12 @@
                 if (plage && availabilityData[plage.id] && availabilityData[plage.id].length > 0) {
                     cell.className = "h-20 border-b border-l border-border-light p-2 overflow-y-auto custom-scrollbar cell-with-teachers";
                     availabilityData[plage.id].forEach(prof => {
-                        const badge = document.createElement('span');
-                        badge.className = "teacher-badge";
-                        badge.textContent = prof.nom;
+                        const badge = document.createElement('div');
+                        badge.className = "teacher-badge flex flex-col mb-1";
+                        badge.innerHTML = `
+                            <span>${prof.nom}</span>
+                            <span class="text-[8px] opacity-80 font-normal">${prof.ues || 'Aucune UE'}</span>
+                        `;
                         cell.appendChild(badge);
                     });
                     cell.onclick = () => openModal(plage, availabilityData[plage.id]);
@@ -294,6 +311,13 @@
 
     document.getElementById('modal-profs').onchange = async (e) => {
         const ueSelect = document.getElementById('modal-ues');
+        const classeInput = document.getElementById('modal-classe');
+        
+        // Reset fields
+        ueSelect.innerHTML = '<option value="">Choisir l\'UE...</option>';
+        ueSelect.disabled = true;
+        classeInput.value = '';
+        
         if(!e.target.value) return;
 
         const token = localStorage.getItem('token');
@@ -301,22 +325,88 @@
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const ues = await resp.json();
+        console.log("UEs chargées:", ues);
         
-        ueSelect.innerHTML = '<option value="">Choisir l\'UE...</option>';
-        ues.forEach(u => {
-            ueSelect.innerHTML += `<option value="${u.id}">${u.code} - ${u.intitule}</option>`;
-        });
-        ueSelect.disabled = false;
+        if (ues.length === 0) {
+            ueSelect.innerHTML += '<option disabled>Aucune UE assignée</option>';
+        } else {
+            ues.forEach(u => {
+                // Data attributes pour stocker les infos de classe
+                ueSelect.innerHTML += `<option value="${u.id}" data-classe-id="${u.classe_id}" data-classe-nom="${u.classe_nom}">${u.code} - ${u.intitule} (${u.classe_nom})</option>`;
+            });
+            ueSelect.disabled = false;
+            
+            // Auto-sélection de la première UE
+            if (ues.length > 0) {
+                ueSelect.selectedIndex = 1; // Le premier après "Choisir..."
+                ueSelect.dispatchEvent(new Event('change'));
+            }
+        }
     };
 
-    window.closeModal = () => document.getElementById('modal-assign').classList.add('hidden');
+    // Quand on choisit une UE, on remplit automatiquement la classe
+    document.getElementById('modal-ues').onchange = (e) => {
+        const ueSelect = e.target;
+        const classeInput = document.getElementById('modal-classe');
+        const option = ueSelect.selectedOptions[0];
+        
+        if(!option || !option.value) {
+            classeInput.value = '';
+            return;
+        }
 
-    function fillSalles(salles) {
-        const s = document.getElementById('modal-salles');
-        salles.forEach(sa => s.innerHTML += `<option value="${sa.id}">${sa.nom} (${sa.capacite} places)</option>`);
+        const classeNom = option.dataset.classeNom;
+        classeInput.value = classeNom || 'Non définie';
+        console.log(`UE sélectionnée pour la classe: ${classeNom}`);
+        
+    const labelSalle = document.querySelector('label[for="modal-salles"]');
+    if(labelSalle) labelSalle.textContent = `Salle (Effectif théorique)`;
+};
+
+// --- Soumettre l'assignation ---
+document.getElementById('form-assign').onsubmit = async (e) => {
+    e.preventDefault();
+    const ueId = document.getElementById('modal-ues').value;
+    const semestreId = document.querySelector('input[name="semestre"]:checked').value;
+
+    if (!currentPlageId || !ueId) {
+        alert("Veuillez sélectionner un enseignant et une UE.");
+        return;
     }
 
-    // Recharger quand on change de semestre
+    const token = localStorage.getItem('token');
+    try {
+        const resp = await fetch(`${API_URL}/admin/assigner-cours`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                ue_id: ueId,
+                plage_id: currentPlageId,
+                semestre_id: semestreId,
+                annee_id: 1 // TODO: Gérer l'année académique dynamiquement si besoin
+            })
+        });
+
+        const result = await resp.json();
+        if (resp.ok) {
+            alert(result.message);
+            closeModal();
+            loadData(); // Recharger la grille
+        } else {
+            alert("Erreur: " + result.message);
+        }
+    } catch (err) {
+        console.error("Erreur soumission:", err);
+        alert("Erreur serveur lors de l'assignation.");
+    }
+};
+
+window.closeModal = () => document.getElementById('modal-assign').classList.add('hidden');
+
+// Recharger quand on change de semestre
     document.querySelectorAll('input[name="semestre"]').forEach(radio => {
         radio.addEventListener('change', () => {
             loadData();
