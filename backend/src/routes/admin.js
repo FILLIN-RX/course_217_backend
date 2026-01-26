@@ -5,6 +5,7 @@ import {
   getClasses,
   updateClasse,
   deleteClasse,
+  setEffectif,
 } from "../controllers/classe.controller.js";
 import {
   getFilieres,
@@ -39,6 +40,9 @@ router.post(
 
 // --- Département
 router.get("/departements", adminController.getDepartements);
+
+// --- Enseignants
+router.get("/enseignants", adminController.getEnseignants);
 
 router.get("/filieres", getFilieres);
 router.post(
@@ -100,6 +104,9 @@ router.get(
   adminController.getGrilleDisponibilitesOption,
 );
 
+// --- Status des emplois du temps ---
+router.get("/schedule-status", adminController.getScheduleStatus);
+
 // --- UEs d'un enseignant ---
 router.get("/ues-enseignant/:enseignant_id", adminController.getUesEnseignant);
 
@@ -110,7 +117,7 @@ router.post(
   authorizeRole(["ADMIN"]),
   createClasse,
 );
-router.get("/classes", authenticateToken, authorizeRole(["ADMIN"]), getClasses);
+router.get("/classes", getClasses);
 router.put(
   "/classes/:id",
   authenticateToken,
@@ -122,6 +129,35 @@ router.delete(
   authenticateToken,
   authorizeRole(["ADMIN"]),
   deleteClasse,
+);
+
+router.post(
+  "/classes/effectif",
+  authenticateToken,
+  authorizeRole(["ADMIN"]),
+  setEffectif,
+);
+
+// --- Schedule Management ---
+router.post(
+  "/generate-schedule",
+  authenticateToken,
+  authorizeRole(["ADMIN"]),
+  adminController.genererEmploiDuTempsOptimise,
+);
+
+router.post(
+  "/publish-schedule",
+  authenticateToken,
+  authorizeRole(["ADMIN"]),
+  adminController.validerEmploiDuTemps,
+);
+
+router.delete(
+  "/delete-course/:id",
+  authenticateToken,
+  authorizeRole(["ADMIN"]),
+  adminController.deleteCourse,
 );
 
 // End of routes

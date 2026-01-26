@@ -1,10 +1,17 @@
 import { app, BrowserWindow } from "electron";
 import path from "path";
 import { fileURLToPath } from "url";
-import "./backend/src/server.js"; // Lancement automatique du serveur Express
+import dotenv from "dotenv";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+
+// Load env before importing server
+dotenv.config({ path: path.join(__dirname, "backend/.env") });
+
+import "./backend/src/server.js"; // Lancement automatique du serveur Express
+
+
 
 function createWindow() {
   const win = new BrowserWindow({

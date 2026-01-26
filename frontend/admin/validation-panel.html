@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>UniSched | Validation Panel</title>
+    <title>ICT | Validation Panel</title>
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
     <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
@@ -70,6 +70,10 @@
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-teachers.html">
             <span class="material-symbols-outlined">group</span>
             <span class="text-sm">Enseignants</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-classes.html">
+            <span class="material-symbols-outlined">class</span>
+            <span class="text-sm">Classes & Effectifs</span>
         </a>
         <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary font-bold" href="validation-panel.html">
             <span class="material-symbols-outlined">task_alt</span>
@@ -144,7 +148,7 @@
 
 <!-- Modal pour assigner un cours -->
 <div id="modal-assign" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
-    <div class="bg-white p-8 rounded-2xl w-[500px] shadow-2xl">
+    <div class="bg-white p-8 rounded-2xl w-[500px] shadow-2xl max-h-[90vh] overflow-y-auto">
         <h3 class="text-xl font-bold mb-4 text-gray-900">Assigner un cours</h3>
         <p id="info-plage" class="text-sm text-gray-500 mb-6 font-medium"></p>
         
@@ -171,6 +175,16 @@
                 <input type="text" id="modal-classe" class="w-full border p-2.5 rounded-lg bg-gray-50 text-gray-500 font-medium" placeholder="Classe associée..." readonly>
             </div>
             
+            <!-- Room Selection -->
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Salle</label>
+                <select id="modal-salles" class="w-full border p-2.5 rounded-lg" required>
+                    <option value="">Choisir une salle...</option>
+                </select>
+            </div>
+
+
+            
             <div class="flex gap-3 pt-4">
                 <button type="button" onclick="closeModal()" class="flex-1 px-4 py-2 border rounded-lg hover:bg-gray-50">Annuler</button>
                 <button type="submit" class="flex-1 px-4 py-2 bg-primary text-white rounded-lg font-bold hover:bg-primary-hover">Confirmer</button>
@@ -189,15 +203,12 @@
 
     let currentPlageId = null;
     let availabilityData = {};
+    let globalSalles = [];
 
     async function init() {
         const token = localStorage.getItem('token');
         const role = localStorage.getItem('role');
         
-        console.log("=== SESSION INFO ===");
-        console.log("Role en local:", role);
-        console.log("Token présent:", !!token);
-
         if (!token) { 
             window.location.href = '../login.html'; 
             return; 
@@ -216,9 +227,6 @@
         const token = localStorage.getItem('token');
         const currentSemestre = document.querySelector('input[name="semestre"]:checked').value;
         
-        console.log('=== CHARGEMENT GRILLE ADMIN ===');
-        console.log('Semestre sélectionné:', currentSemestre);
-        
         try {
             const [plagesResp, disposResp, sallesResp] = await Promise.all([
                 fetch(`${API_URL}/admin/plages`),
@@ -232,21 +240,35 @@
 
             const plages = await plagesResp.json();
             availabilityData = await disposResp.json();
-            const salles = await sallesResp.json();
+            globalSalles = await sallesResp.json();
             
-            console.log('Plages horaires chargées:', plages.length);
-            console.log('Données disponibilités:', availabilityData);
-            console.log('Nombre de créneaux avec disponibilités:', Object.keys(availabilityData).length);
-            
-            // Afficher le détail de chaque créneau
-            Object.entries(availabilityData).forEach(([plageId, profs]) => {
-                const plage = plages.find(p => p.id == plageId);
-                if (plage) {
-                    console.log(`Plage ${plageId} (${plage.jour} ${plage.heure_debut}):`, profs.map(p => p.nom).join(', '));
-                }
-            });
-
             renderGrid(plages);
+            
+            // Check status
+            const statusResp = await fetch(`${API_URL}/admin/schedule-status?semestre_id=${currentSemestre}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const statusData = await statusResp.json();
+            
+            if (statusData.readyClasses && statusData.readyClasses.length > 0) {
+                // Show floating alert
+                const alertDiv = document.createElement('div');
+                alertDiv.className = "fixed bottom-4 right-4 bg-emerald-600 text-white p-4 rounded-xl shadow-2xl z-50 animate-bounce";
+                alertDiv.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="material-symbols-outlined text-3xl">check_circle</span>
+                        <div>
+                            <h3 class="font-bold text-lg">Emploi du temps terminé !</h3>
+                            <p class="text-sm">Les classes suivantes sont prêtes : <br/> 
+                                <span class="font-mono bg-emerald-700 px-1 rounded">${statusData.readyClasses.join(', ')}</span>
+                            </p>
+                        </div>
+                        <button onclick="this.parentElement.parentElement.remove()" class="ml-2 text-emerald-200 hover:text-white">✕</button>
+                    </div>
+                `;
+                document.body.appendChild(alertDiv);
+            }
+
         } catch (err) {
             console.error('Erreur chargement données:', err);
         }
@@ -299,13 +321,20 @@
         
         const profSelect = document.getElementById('modal-profs');
         const teacherList = document.getElementById('available-teachers');
-        
+        const salleSelect = document.getElementById('modal-salles');
+
         profSelect.innerHTML = '<option value="">Choisir...</option>';
         teacherList.innerHTML = '';
         
         profs.forEach(p => {
             profSelect.innerHTML += `<option value="${p.id}">${p.nom}</option>`;
             teacherList.innerHTML += `<span class="teacher-badge">${p.nom}</span>`;
+        });
+
+        // Fill Salles
+        salleSelect.innerHTML = '<option value="">Choisir une salle...</option>';
+        globalSalles.forEach(s => {
+            salleSelect.innerHTML += `<option value="${s.id}">${s.nom} (Cap: ${s.capacite})</option>`;
         });
     }
 
@@ -325,26 +354,21 @@
             headers: { 'Authorization': `Bearer ${token}` }
         });
         const ues = await resp.json();
-        console.log("UEs chargées:", ues);
         
         if (ues.length === 0) {
             ueSelect.innerHTML += '<option disabled>Aucune UE assignée</option>';
         } else {
             ues.forEach(u => {
-                // Data attributes pour stocker les infos de classe
                 ueSelect.innerHTML += `<option value="${u.id}" data-classe-id="${u.classe_id}" data-classe-nom="${u.classe_nom}">${u.code} - ${u.intitule} (${u.classe_nom})</option>`;
             });
             ueSelect.disabled = false;
-            
-            // Auto-sélection de la première UE
-            if (ues.length > 0) {
-                ueSelect.selectedIndex = 1; // Le premier après "Choisir..."
+             if (ues.length > 0) {
+                ueSelect.selectedIndex = 1;
                 ueSelect.dispatchEvent(new Event('change'));
             }
         }
     };
 
-    // Quand on choisit une UE, on remplit automatiquement la classe
     document.getElementById('modal-ues').onchange = (e) => {
         const ueSelect = e.target;
         const classeInput = document.getElementById('modal-classe');
@@ -357,52 +381,50 @@
 
         const classeNom = option.dataset.classeNom;
         classeInput.value = classeNom || 'Non définie';
-        console.log(`UE sélectionnée pour la classe: ${classeNom}`);
-        
-    const labelSalle = document.querySelector('label[for="modal-salles"]');
-    if(labelSalle) labelSalle.textContent = `Salle (Effectif théorique)`;
-};
+    };
 
-// --- Soumettre l'assignation ---
-document.getElementById('form-assign').onsubmit = async (e) => {
-    e.preventDefault();
-    const ueId = document.getElementById('modal-ues').value;
-    const semestreId = document.querySelector('input[name="semestre"]:checked').value;
+    // --- Soumettre l'assignation ---
+    document.getElementById('form-assign').onsubmit = async (e) => {
+        e.preventDefault();
+        const ueId = document.getElementById('modal-ues').value;
+        const salleId = document.getElementById('modal-salles').value;
+        const semestreId = document.querySelector('input[name="semestre"]:checked').value;
 
-    if (!currentPlageId || !ueId) {
-        alert("Veuillez sélectionner un enseignant et une UE.");
-        return;
-    }
-
-    const token = localStorage.getItem('token');
-    try {
-        const resp = await fetch(`${API_URL}/admin/assigner-cours`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                ue_id: ueId,
-                plage_id: currentPlageId,
-                semestre_id: semestreId,
-                annee_id: 1 // TODO: Gérer l'année académique dynamiquement si besoin
-            })
-        });
-
-        const result = await resp.json();
-        if (resp.ok) {
-            alert(result.message);
-            closeModal();
-            loadData(); // Recharger la grille
-        } else {
-            alert("Erreur: " + result.message);
+        if (!currentPlageId || !ueId || !salleId) {
+            alert("Veuillez remplir tous les champs obligatoires (Enseignant, UE, Salle).");
+            return;
         }
-    } catch (err) {
-        console.error("Erreur soumission:", err);
-        alert("Erreur serveur lors de l'assignation.");
-    }
-};
+
+        const token = localStorage.getItem('token');
+        try {
+            const resp = await fetch(`${API_URL}/admin/assigner-cours`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    ue_id: ueId,
+                    salle_id: salleId,
+                    plage_id: currentPlageId,
+                    semestre_id: semestreId,
+                    annee_id: 1 
+                })
+            });
+
+            const result = await resp.json();
+            if (resp.ok) {
+                alert(result.message);
+                closeModal();
+                loadData();
+            } else {
+                alert("Erreur: " + result.message);
+            }
+        } catch (err) {
+            console.error("Erreur soumission:", err);
+            alert("Erreur serveur lors de l'assignation.");
+        }
+    };
 
 window.closeModal = () => document.getElementById('modal-assign').classList.add('hidden');
 

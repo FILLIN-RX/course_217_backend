@@ -4,6 +4,7 @@ import { seedFilieres } from "./controllers/filiere.controller.js";
 import { seedClasses } from "./controllers/classe.controller.js";
 import { seedUEs } from "./controllers/ue.controller.js";
 import { seedPlages } from "./controllers/plage.controller.js";
+import { seedSalles } from "./controllers/salle.controller.js";
 import { seedSemestres } from "./controllers/semestre.controller.js";
 
 const PORT = process.env.PORT || 4000;
@@ -19,6 +20,7 @@ app.listen(PORT, async () => {
     await seedSemestres();
     await seedUEs();
     await seedPlages();
+    await seedSalles();
     console.log("✅ Seeding terminé.");
   } catch (error) {
     console.error("❌ Erreur Seeding:", error.message);

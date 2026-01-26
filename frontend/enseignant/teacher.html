@@ -1,14 +1,12 @@
-
-
 <!DOCTYPE html>
 <html class="light" lang="fr">
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>UniSched | Mon Emploi du Temps</title>
+    <title>ICT 203| Mon Emploi du Temps</title>
     <link href="https://fonts.googleapis.com" rel="preconnect"/>
     <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <script>
@@ -18,172 +16,192 @@
                 extend: {
                     colors: {
                         "primary": "#355f57",
-                        "secondary": "#E6E9EB",
-                        "accent": "#d8605d",
+                        "primary-hover": "#2a4c45",
                         "background-light": "#fafafa",
-                        "background-dark": "#16181d",
                         "surface-light": "#ffffff",
-                        "surface-dark": "#1e2329",
-                        "text-main": "#30363F",
-                        "text-muted": "#6e7c7a",
+                        "border-light": "#e5e7eb",
                     },
                     fontFamily: { "display": ["Manrope", "sans-serif"] },
-                    gridTemplateColumns: { 'schedule': '80px repeat(6, 1fr)' }
                 },
             },
         }
     </script>
     <style>
-        .bg-grid-pattern {
-            background-size: 40px 40px;
-            background-image: linear-gradient(to right, #f0f0f0 1px, transparent 1px), linear-gradient(to bottom, #f0f0f0 1px, transparent 1px);
-        }
-        .dark .bg-grid-pattern { background-image: linear-gradient(to right, #2a2f36 1px, transparent 1px), linear-gradient(to bottom, #2a2f36 1px, transparent 1px); }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        .grid-cell { transition: all 0.2s ease; }
     </style>
 </head>
-<body class="bg-background-light dark:bg-background-dark text-text-main dark:text-gray-100 font-display transition-colors duration-200">
-    <div class="flex h-screen w-full overflow-hidden">
-        <aside class="w-64 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 bg-surface-light dark:bg-surface-dark flex flex-col justify-between p-6 z-20">
-            <div class="flex flex-col gap-8">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
-                        <span class="material-symbols-outlined text-2xl">school</span>
-                    </div>
-                    <div>
-                        <h1 class="text-text-main dark:text-white text-lg font-bold leading-tight">UniSched</h1>
-                        <p class="text-text-muted text-xs font-medium uppercase">Portail Enseignant</p>
-                    </div>
-                </div>
-                <nav class="flex flex-col gap-2">
-                    <a class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 border-l-4 border-primary transition-all" href="#">
-                        <span class="material-symbols-outlined text-primary">calendar_month</span>
-                        <p class="text-primary font-bold text-sm">Mon Emploi du Temps</p>
-                    </a>
-                    <a class="group flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-gray-50 dark:hover:bg-gray-800 transition-all" href="teacher-preferences.html">
-                        <span class="material-symbols-outlined text-text-muted">schedule</span>
-                        <p class="text-text-muted font-medium text-sm">Mes Disponibilités</p>
-                    </a>
-                </nav>
+<body class="bg-background-light text-[#131615] font-display overflow-hidden h-screen flex">
+
+<aside class="w-64 h-full flex flex-col bg-surface-light border-r border-border-light shrink-0 z-20">
+    <div class="p-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white shadow-lg">
+                <span class="material-symbols-outlined">school</span>
             </div>
-            <div class="flex flex-col gap-4">
-    <div class="flex items-center gap-3 px-2">
-        <div id="user-avatar" class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center font-bold border-2 border-white dark:border-gray-700 shadow-sm">
-            --
-        </div>
-        <div class="flex flex-col">
-            <p id="profile-name" class="text-sm font-bold text-text-main dark:text-white">Chargement...</p>
-            <p id="profile-dept" class="text-xs text-text-muted">Faculté</p>
+            <h1 class="text-base font-bold tracking-tight">UniSched</h1>
         </div>
     </div>
-    <button id="logout-btn" class="flex w-full items-center justify-center gap-2 rounded-lg py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-text-main dark:text-gray-300 hover:bg-red-50 hover:text-red-600 transition-colors text-sm font-semibold shadow-sm">
-        <span class="material-symbols-outlined text-lg">logout</span>
-        <span>Déconnexion</span>
-    </button>
-</div>
-        </aside>
-
-        <main class="flex flex-col flex-1 overflow-hidden relative">
-            <div class="px-8 pt-8 pb-4 bg-surface-light dark:bg-surface-dark border-b border-gray-200 dark:border-gray-800">
-                <h2 class="text-3xl font-extrabold text-text-main dark:text-white tracking-tight">Planning Hebdomadaire</h2>
-                <p class="text-text-muted text-sm font-medium">Consultez vos cours et salles assignés</p>
+    <nav class="flex-1 px-3 py-4">
+        <a class="group flex items-center gap-3 px-4 py-3 rounded-xl bg-primary/10 border-l-4 border-primary transition-all" href="#">
+            <span class="material-symbols-outlined text-primary">calendar_month</span>
+            <p class="text-primary font-bold text-sm">Mon Emploi du Temps</p>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-50 text-gray-500 font-medium transition-all" href="teacher-preferences.html">
+            <span class="material-symbols-outlined">calendar_clock</span>
+            <span class="text-sm">Mes Disponibilités</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-border-light">
+        <div class="flex items-center gap-3">
+            <div id="user-avatar" class="rounded-full size-9 bg-primary text-white flex items-center justify-center font-bold text-xs shadow-md">--</div>
+            <div class="flex-1 min-w-0">
+                <p id="profile-name" class="text-sm font-bold truncate">Chargement...</p>
+                <p id="profile-dept" class="text-xs text-text-muted">Enseignant</p>
             </div>
-
-            <div class="flex-1 overflow-auto bg-gray-50 dark:bg-[#0f1115] p-6">
-                <div class="min-w-[1000px] bg-surface-light dark:bg-surface-dark rounded-xl shadow-sm border border-gray-200 dark:border-gray-800 flex flex-col">
-                    <div class="grid grid-cols-schedule border-b border-gray-200 dark:border-gray-800 sticky top-0 bg-white dark:bg-surface-dark z-10">
-                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 flex items-center justify-center"><span class="text-xs font-bold text-text-muted uppercase">HEURE</span></div>
-                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Lundi</div>
-                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Mardi</div>
-                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Mercredi</div>
-                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Jeudi</div>
-                        <div class="p-4 border-r border-gray-100 dark:border-gray-800 text-center font-bold">Vendredi</div>
-                        <div class="p-4 text-center font-bold">Samedi</div>
-                    </div>
-
-                    <div class="flex-1 bg-grid-pattern relative">
-                        <table class="w-full border-collapse table-fixed" id="schedule-table">
-                            <tbody id="schedule-body">
-                                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </main>
+            <button id="logout-btn" class="text-gray-400 hover:text-red-500 transition-colors">
+                <span class="material-symbols-outlined text-[20px]">logout</span>
+            </button>
+        </div>
     </div>
+</aside>
 
-    <script type="module">
-    // Configuration
+<main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+    <header class="bg-surface-light border-b border-border-light px-8 py-5 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div>
+            <h2 class="text-2xl font-black tracking-tight text-gray-900">Planning Hebdomadaire</h2>
+            <p class="text-sm text-gray-500 font-medium">Consultez vos cours et les classes assignées</p>
+        </div>
+    </header>
+
+    <section class="flex-1 overflow-auto custom-scrollbar p-8">
+        <div class="min-w-[900px] bg-white rounded-2xl shadow-xl border border-border-light overflow-hidden">
+            <div class="grid grid-cols-[100px_repeat(6,1fr)] border-b border-border-light bg-gray-50/50 sticky top-0 z-20 backdrop-blur-md">
+                <div class="p-4 flex items-center justify-center border-r"><span class="material-symbols-outlined text-gray-400">schedule</span></div>
+                <div class="p-4 text-center font-bold text-gray-700">Lundi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Mardi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Mercredi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Jeudi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Vendredi</div>
+                <div class="p-4 text-center font-bold text-gray-700 border-l">Samedi</div>
+            </div>
+
+            <div id="grid-body" class="grid grid-cols-[100px_repeat(6,1fr)]">
+                <!-- Grid Cells will be injected here -->
+            </div>
+        </div>
+    </section>
+</main>
+
+<script type="module">
     const API_URL = "http://localhost:4000";
 
-    async function loadUserProfile() {
+    async function init() {
         const token = localStorage.getItem('token');
-        
         if (!token) {
-            window.location.href = 'teacher-login.html';
+            window.location.href = 'login.html'; // Changed per user request history to login.html
             return;
         }
 
         try {
-            const response = await fetch(`${API_URL}/auth/profile`, {
-                method: 'GET',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
-
-            if (response.ok) {
-                const userData = await response.json();
-                
-                // 1. Mise à jour du nom
-                document.getElementById('profile-name').textContent = userData.nom;
-                
-                // 2. Création des initiales (ex: "John Doe" -> "JD")
-                const initials = userData.nom
-                    .split(' ')
-                    .map(word => word[0])
-                    .join('')
-                    .toUpperCase()
-                    .substring(0, 2);
-                document.getElementById('user-avatar').textContent = initials;
-
-                // 3. Optionnel : Afficher le rôle ou département
-                document.getElementById('profile-dept').textContent = userData.role === 'ENSEIGNANT' ? 'Enseignant' : 'Administrateur';
-                
-                // Charger l'emploi du temps après avoir validé le profil
-                loadTeacherSchedule(token);
-                
-            } else {
-                // Si le token est invalide ou expiré
-                localStorage.clear();
-                window.location.href = 'teacher-login.html';
-            }
-        } catch (error) {
-            console.error("Erreur de profil:", error);
-        }
-    }
-
-    async function loadTeacherSchedule(token) {
-        try {
-            const res = await fetch(`${API_URL}/enseignant/emplois-du-temps/detail`, {
+            // 1. Charger Profil
+            const profRes = await fetch(`${API_URL}/auth/profile`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            const schedule = await res.json();
-            // Appeler ici ta fonction de rendu de la grille (renderSchedule)
+            
+            if (!profRes.ok) throw new Error("Auth failed");
+            const userData = await profRes.json();
+            
+            document.getElementById('profile-name').textContent = userData.nom;
+            document.getElementById('profile-dept').textContent = userData.role;
+            document.getElementById('user-avatar').textContent = userData.nom.substring(0, 2).toUpperCase();
+
+            // 2. Charger Plages et Planning
+            const [plagesRes, scheduleRes] = await Promise.all([
+                fetch(`${API_URL}/admin/plages`),
+                fetch(`${API_URL}/enseignant/emplois-du-temps/detail`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                })
+            ]);
+
+            if (!plagesRes.ok || !scheduleRes.ok) {
+                throw new Error("Erreur de chargement des données");
+            }
+
+            const plages = await plagesRes.json();
+            const schedule = await scheduleRes.json();
+
+            console.log("Plages chargées:", plages);
             console.log("Planning chargé:", schedule);
-        } catch (err) {
-            console.error("Erreur planning:", err);
+
+            renderScheduleGrid(plages, schedule);
+
+        } catch (error) {
+            console.error("Erreur d'initialisation:", error);
+            alert("Erreur lors du chargement de votre emploi du temps. Veuillez réessayer.");
+            // On pourrait rediriger vers le login si c'est une erreur d'auth, mais restons prudents
         }
     }
 
-    // Gestion de la déconnexion
+    function renderScheduleGrid(plages, schedule) {
+        const grid = document.getElementById('grid-body');
+        grid.innerHTML = '';
+
+        const jours = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+        // On suppose que les plages sont triées
+        const heures = [...new Set(plages.map(p => p.heure_debut))].sort();
+
+        heures.forEach(heure => {
+            // Format heure: 08:00:00 -> 08:00
+            const displayHeure = heure.substring(0, 5);
+            // Calcul heure fin (supposons 1h par plage pour l'affichage simple, ou utilisons la logique de plages)
+            // Pour l'affichage, on va juste prendre l'heure de début + 1h pour l'étiquette
+            const [h, m] = displayHeure.split(':').map(Number);
+            const nextH = (h + 1).toString().padStart(2, '0') + ':' + m.toString().padStart(2, '0');
+
+            // Label Heure (colonne de gauche)
+            const labelDiv = document.createElement('div');
+            labelDiv.className = "h-24 border-b flex flex-col items-center justify-center bg-gray-50/30 border-r";
+            labelDiv.innerHTML = `
+                <span class="text-[12px] font-bold text-gray-900">${displayHeure}</span>
+                <span class="text-[10px] text-gray-400">${nextH}</span>
+            `;
+            grid.appendChild(labelDiv);
+
+            // Cellules pour chaque jour
+            jours.forEach(jour => {
+                const cell = document.createElement('div');
+                cell.className = "h-24 border-b border-l border-border-light relative p-1";
+
+                const cours = schedule.find(s => s.jour === jour && s.heure_debut === heure);
+
+                if (cours) {
+                    cell.innerHTML = `
+                        <div class="h-full w-full p-2 rounded-xl bg-primary/10 border-l-4 border-primary shadow-sm overflow-hidden flex flex-col justify-center">
+                            <p class="text-[10px] font-bold text-primary uppercase mb-0.5">${cours.code}</p>
+                            <p class="text-[12px] font-extrabold text-[#131615] leading-tight truncate" title="${cours.intitule}">${cours.intitule}</p>
+                            <div class="flex items-center gap-1.5 mt-1.5 text-text-muted">
+                                <span class="material-symbols-outlined text-[14px]">meeting_room</span>
+                                <span class="text-[11px] font-bold">${cours.salle_nom || '?'}</span>
+                                <span class="mx-1">•</span>
+                                <span class="text-[11px] font-medium">${cours.classe_nom || 'Classe'}</span>
+                            </div>
+                        </div>
+                    `;
+                }
+
+                grid.appendChild(cell);
+            });
+        });
+    }
+
     document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.clear();
         window.location.href = 'login.html';
     });
 
-    // Lancement au chargement
-    window.onload = loadUserProfile;
+    window.onload = init;
 </script>
 </body>
 </html>

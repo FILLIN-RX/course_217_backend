@@ -42,7 +42,7 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
   try {
     // 1. Get Class Effectif
     const [effectifRows] = await db.query(
-      "SELECT effectif FROM effectifs_classe WHERE classe_id=? AND semestre_id=? AND annee_id=?",
+      "SELECT effectif FROM classe_effectifs WHERE classe_id=? AND semestre_id=? AND annee_id=?",
       [classe_id, semestre_id, annee_id],
     );
     if (effectifRows.length === 0) {
@@ -55,9 +55,10 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
     // 2. Get UEs for this semester (Global UEs logic as per user request 'UE no class ID')
     // We assume UEs are filtered by semester only, or we would need a join via Filiere if schema permitted.
     // For now, fetching all UEs for the semester that are NOT yet fully scheduled for this class.
-    const [ues] = await db.query("SELECT * FROM ues WHERE semestre_id=?", [
-      semestre_id,
-    ]);
+    const [ues] = await db.query(
+      "SELECT u.*, eu.enseignant_id FROM ues u LEFT JOIN enseignant_ues eu ON u.id = eu.ue_id WHERE u.semestre_id=?",
+      [semestre_id],
+    );
 
     // 3. Get all Rooms with enough capacity
     const [salles] = await db.query(
@@ -115,7 +116,9 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
 
           // Check if teacher is busy at this slot
           const [busyTeacher] = await db.query(
-            "SELECT et.id FROM emplois_du_temps et JOIN ues u ON et.ue_id = u.id WHERE u.enseignant_id=? AND et.plage_id=? AND et.semestre_id=? AND et.annee_id=?",
+            `SELECT et.id FROM emplois_du_temps et 
+             LEFT JOIN enseignant_ues eu ON et.ue_id = eu.ue_id 
+             WHERE eu.enseignant_id=? AND et.plage_id=? AND et.semestre_id=? AND et.annee_id=?`,
             [ue.enseignant_id, plage.id, semestre_id, annee_id],
           );
           if (busyTeacher.length > 0) continue;
@@ -129,8 +132,8 @@ export const genererEmploiDuTempsOptimise = async (req, res) => {
 
           // Place the UE
           const [insert] = await db.query(
-            "INSERT INTO emplois_du_temps (ue_id, salle_id, plage_id, semestre_id, annee_id, statut) VALUES (?, ?, ?, ?, ?, 'BROUILLON')",
-            [ue.id, salle.id, plage.id, semestre_id, annee_id],
+            "INSERT INTO emplois_du_temps (ue_id, salle_id, classe_id, plage_id, semestre_id, annee_id, statut) VALUES (?, ?, ?, ?, ?, ?, 'BROUILLON')",
+            [ue.id, salle.id, ue.classe_id, plage.id, semestre_id, annee_id],
           );
 
           await logAction(
@@ -309,44 +312,188 @@ export const getUesEnseignant = async (req, res) => {
  * Assigner manuellement un cours
  */
 export const assignerCoursManuel = async (req, res) => {
-  const { ue_id, plage_id, semestre_id, annee_id } = req.body;
+  const { ue_id, salle_id, plage_id, semestre_id, annee_id } = req.body;
 
   try {
-    // 1. On récupère la CLASSE directement liée à l'UE
+    // 1. Get Class & Details for the UE
     const [ueRows] = await db.query(
-      `SELECT id, classe_id FROM ues WHERE id = ?`,
-      [ue_id]
+      `SELECT u.id, u.classe_id, eu.enseignant_id, c.nom as classe_nom 
+       FROM ues u 
+       JOIN classes c ON u.classe_id = c.id 
+       LEFT JOIN enseignant_ues eu ON u.id = eu.ue_id
+       WHERE u.id = ?`,
+      [ue_id],
     );
 
     if (ueRows.length === 0) {
       return res.status(404).json({ message: "UE introuvable." });
     }
+    const { classe_id, classe_nom, enseignant_id } = ueRows[0];
 
-    const classeId = ueRows[0].classe_id; // C'est l'ID de la classe qui sert de "lieu"
-
-    // 2. On vérifie si CETTE CLASSE est déjà occupée à cette heure
-    const [collision] = await db.query(
-      `SELECT et.id FROM emplois_du_temps et 
-       JOIN ues u ON et.ue_id = u.id 
-       WHERE u.classe_id = ? AND et.plage_id = ? AND et.semestre_id = ?`,
-      [classeId, plage_id, semestre_id]
+    // 2. Validate Room Capacity
+    // Get Class Effectif
+    const [effRows] = await db.query(
+      "SELECT effectif FROM classe_effectifs WHERE classe_id=? AND semestre_id=? AND annee_id=?",
+      [classe_id, semestre_id, annee_id],
     );
+    const effectif = effRows.length > 0 ? effRows[0].effectif : 0;
 
-    if (collision.length > 0) {
-      return res.status(400).json({ message: "Cette classe a déjà un cours à ce créneau." });
+    // Get Room Capacity
+    if (!salle_id) return res.status(400).json({ message: "Salle manquante." });
+
+    const [salleRows] = await db.query("SELECT * FROM salles WHERE id = ?", [
+      salle_id,
+    ]);
+    if (salleRows.length === 0)
+      return res.status(404).json({ message: "Salle introuvable." });
+
+    if (effectif > salleRows[0].capacite) {
+      return res.status(400).json({
+        message: `La salle ${salleRows[0].nom} (Cap: ${salleRows[0].capacite}) est trop petite pour la classe ${classe_nom} (Eff: ${effectif}).`,
+      });
     }
 
-    // 3. Insertion : on utilise classeId pour la colonne salle_id (pour respecter ton schéma SQL)
-    const [result] = await db.query(
-      `INSERT INTO emplois_du_temps (ue_id, salle_id, plage_id, semestre_id, annee_id, statut)
-       VALUES (?, ?, ?, ?, ?, 'VALIDE')`,
-      [ue_id, classeId, plage_id, semestre_id, annee_id || 1]
+    // 3. Check Collisions (Room, Class, Teacher)
+    // Helper to build collision query
+    const checkCollision = async (entityField, entityId) => {
+      let query = `SELECT id FROM emplois_du_temps WHERE ${entityField} = ? AND plage_id = ? AND semestre_id = ? AND annee_id = ?`;
+      let params = [entityId, plage_id, semestre_id, annee_id];
+
+      const [rows] = await db.query(query, params);
+      return rows.length > 0;
+    };
+
+    if (await checkCollision("salle_id", salle_id))
+      return res.status(400).json({ message: "La salle est déjà occupée." });
+    if (await checkCollision("classe_id", classe_id))
+      return res.status(400).json({ message: "La classe a déjà un cours." });
+
+    // Check Teacher
+    let teacherQuery = `
+        SELECT et.id FROM emplois_du_temps et 
+        JOIN enseignant_ues eu ON et.ue_id = eu.ue_id 
+        WHERE eu.enseignant_id = ? AND et.plage_id = ? AND et.semestre_id = ? AND et.annee_id = ?`;
+    let teacherParams = [enseignant_id, plage_id, semestre_id, annee_id];
+
+    const [teacherBusy] = await db.query(teacherQuery, teacherParams);
+    if (teacherBusy.length > 0)
+      return res.status(400).json({ message: "L'enseignant est déjà occupé." });
+
+    // 4. Insert
+    await db.query(
+      `INSERT INTO emplois_du_temps (ue_id, salle_id, classe_id, plage_id, semestre_id, annee_id, statut)
+       VALUES (?, ?, ?, ?, ?, ?, 'VALIDE')`,
+      [ue_id, salle_id, classe_id, plage_id, semestre_id, annee_id],
     );
 
-    res.json({ message: "Cours assigné avec succès à la classe." });
-
+    res.json({ message: "Cours assigné avec succès." });
   } catch (err) {
     console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+/**
+ * Check which classes have a complete schedule for a semester
+ */
+export const getScheduleStatus = async (req, res) => {
+  const { semestre_id } = req.query; // Expects query params
+  const annee_id = 1; // Default or passing from query
+
+  try {
+    // 1. Get all Classes
+    const [classes] = await db.query("SELECT id, nom FROM classes");
+    const readyClasses = [];
+
+    for (const cls of classes) {
+      // Get Total UEs for this class & semester
+      const [ues] = await db.query(
+        "SELECT COUNT(*) as total FROM ues WHERE classe_id = ? AND semestre_id = ?",
+        [cls.id, semestre_id],
+      );
+      const totalUEs = ues[0].total;
+
+      if (totalUEs === 0) continue; // No UEs, skip
+
+      // Get Scheduled UEs
+      const [scheduled] = await db.query(
+        `SELECT COUNT(DISTINCT ue_id) as total 
+                 FROM emplois_du_temps etk
+                 JOIN ues u ON etk.ue_id = u.id
+                 WHERE u.classe_id = ? AND etk.semestre_id = ? AND etk.annee_id = ?`,
+        [cls.id, semestre_id, annee_id],
+      );
+      const countScheduled = scheduled[0].total;
+
+      if (totalUEs === countScheduled) {
+        readyClasses.push(cls.nom);
+      }
+    }
+
+    res.json({ readyClasses });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+// ... existing code ...
+
+/**
+ * Get all teachers with their UEs
+ */
+export const getEnseignants = async (req, res) => {
+  try {
+    const [teachers] = await db.query(
+      "SELECT * FROM enseignants ORDER BY nom ASC",
+    );
+
+    // Fetch UEs for each teacher
+    for (const teacher of teachers) {
+      const [ues] = await db.query(
+        `SELECT u.code FROM ues u
+                 JOIN enseignant_ues eu ON u.id = eu.ue_id
+                 WHERE eu.enseignant_id = ?`,
+        [teacher.id],
+      );
+      teacher.ues = ues.map((u) => u.code).join(", ");
+    }
+
+    res.json(teachers);
+  } catch (err) {
+    console.error("Erreur getEnseignants:", err);
+    res.status(500).json({ message: "Erreur serveur" });
+  }
+};
+
+export const deleteCourse = async (req, res) => {
+  const { id } = req.params;
+  const userId = req.user.id;
+
+  try {
+    // Get course details before deletion for logging
+    const [course] = await db.query(
+      "SELECT * FROM emplois_du_temps WHERE id = ?",
+      [id],
+    );
+
+    if (course.length === 0) {
+      return res.status(404).json({ message: "Cours introuvable" });
+    }
+
+    await db.query("DELETE FROM emplois_du_temps WHERE id = ?", [id]);
+
+    await logAction(
+      "DELETE_COURSE",
+      "emplois_du_temps",
+      id,
+      userId,
+      course[0],
+      null,
+    );
+
+    res.json({ message: "Cours supprimé avec succès" });
+  } catch (err) {
+    console.error("Erreur deleteCourse:", err);
     res.status(500).json({ message: "Erreur serveur" });
   }
 };

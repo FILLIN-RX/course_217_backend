@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>UniSched | Gestionnaire d'Emploi du Temps</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#355f57",
+                        "primary-hover": "#2a4c45",
+                        "background-light": "#fafafa",
+                        "surface-light": "#ffffff",
+                        "border-light": "#e5e7eb",
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+    <style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
+        
+        .course-block {
+            transition: all 0.2s ease;
+            cursor: pointer;
+        }
+        .course-block:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(53, 95, 87, 0.3);
+        }
+        .course-brouillon {
+            background-color: #fef3c7 !important;
+            border-left-color: #f59e0b !important;
+        }
+        .course-valide {
+            background-color: #dbeafe !important;
+            border-left-color: #3b82f6 !important;
+        }
+    </style>
+</head>
+<body class="bg-background-light text-[#131615] font-display overflow-hidden h-screen flex">
+
+<aside class="w-64 h-full flex flex-col bg-surface-light border-r border-border-light shrink-0 z-20">
+    <div class="p-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white shadow-lg">
+                <span class="material-symbols-outlined">school</span>
+            </div>
+            <h1 class="text-base font-bold tracking-tight">UniSched</h1>
+        </div>
+    </div>
+    <nav class="flex-1 px-3 py-4">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-dashboard.html">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-sm">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary font-bold" href="#">
+            <span class="material-symbols-outlined">calendar_month</span>
+            <span class="text-sm">Emploi du Temps</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-classes.html">
+            <span class="material-symbols-outlined">class</span>
+            <span class="text-sm">Classes</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-border-light">
+        <button id="logout-btn" class="flex items-center gap-3 w-full text-left p-2 hover:bg-red-50 text-gray-600 hover:text-red-500 rounded-lg transition-colors">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="text-sm font-medium">Déconnexion</span>
+        </button>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+    <header class="bg-surface-light border-b border-border-light px-8 py-5 shrink-0 shadow-sm z-10">
+        <div class="flex items-center justify-between">
+            <div>
+                <h2 class="text-2xl font-black tracking-tight text-gray-900">Gestionnaire d'Emploi du Temps</h2>
+                <p class="text-sm text-gray-500 font-medium">Mode Automatique & Manuel avec gestion des conflits</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="btn-auto-generate" class="flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg transition-all">
+                    <span class="material-symbols-outlined">auto_awesome</span>
+                    Générer Intelligemment
+                </button>
+                <button id="btn-publish" class="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-lg font-bold shadow-lg transition-all">
+                    <span class="material-symbols-outlined">publish</span>
+                    Publier l'Emploi du Temps
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Filters -->
+    <section class="bg-white border-b border-border-light px-8 py-4">
+        <div class="flex items-end gap-4">
+            <div class="flex-1 grid grid-cols-3 gap-4">
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Classe</label>
+                    <select id="select-classe" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                        <option value="">Chargement...</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Semestre</label>
+                    <select id="select-semestre" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                        <option value="1">Semestre 1</option>
+                        <option value="2">Semestre 2</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-1">Année</label>
+                    <select id="select-annee" class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm">
+                        <option value="1">2023-2024</option>
+                    </select>
+                </div>
+            </div>
+            <button id="btn-load-schedule" class="bg-primary hover:bg-primary-hover text-white px-6 py-2 rounded-lg font-bold">
+                Charger
+            </button>
+        </div>
+    </section>
+
+    <!-- Legend -->
+    <section class="bg-gray-50 border-b border-border-light px-8 py-3">
+        <div class="flex items-center gap-6 text-xs font-medium">
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-yellow-100 border-l-2 border-amber-500"></div>
+                <span>BROUILLON (Auto)</span>
+            </div>
+            <div class="flex items-center gap-2">
+                <div class="w-4 h-4 rounded bg-blue-100 border-l-2 border-blue-600"></div>
+                <span>VALIDÉ (Publié)</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- Calendar Grid -->
+    <section class="flex-1 overflow-auto custom-scrollbar p-8">
+        <div id="calendar-container" class="min-w-[1200px] bg-white rounded-2xl shadow-xl border border-border-light overflow-hidden">
+            <div class="grid grid-cols-8 border-b border-border-light bg-gray-50/50 sticky top-0 z-20">
+                <div class="p-3 border-r border-border-light flex items-center justify-center">
+                    <span class="text-xs font-bold text-gray-400 uppercase">Heures</span>
+                </div>
+                <div class="p-3 border-r border-border-light text-center font-bold">Lundi</div>
+                <div class="p-3 border-r border-border-light text-center font-bold">Mardi</div>
+                <div class="p-3 border-r border-border-light text-center font-bold">Mercredi</div>
+                <div class="p-3 border-r border-border-light text-center font-bold">Jeudi</div>
+                <div class="p-3 border-r border-border-light text-center font-bold">Vendredi</div>
+                <div class="p-3 text-center font-bold">Samedi</div>
+            </div>
+
+            <div class="relative min-h-[720px] grid grid-cols-8" id="schedule-grid">
+                <!-- Time Labels -->
+                <div class="flex flex-col text-right pr-3 pt-0 relative z-10 bg-white text-xs text-gray-400 font-medium border-r border-border-light">
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">08:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">09:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">10:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">11:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">12:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">13:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">14:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">15:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">16:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">17:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">18:00</span></div>
+                    <div class="h-[60px] relative border-b border-border-light/50"><span class="absolute -top-2.5 right-3">19:00</span></div>
+                </div>
+
+                <!-- Day Columns -->
+                <div class="relative h-full border-r border-border-light" data-day="Lundi"></div>
+                <div class="relative h-full border-r border-border-light" data-day="Mardi"></div>
+                <div class="relative h-full border-r border-border-light" data-day="Mercredi"></div>
+                <div class="relative h-full border-r border-border-light" data-day="Jeudi"></div>
+                <div class="relative h-full border-r border-border-light" data-day="Vendredi"></div>
+                <div class="relative h-full" data-day="Samedi"></div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<script type="module">
+    const API_URL = "http://localhost:3000";
+    const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
+    let currentClasseId = null;
+    let currentSemestreId = null;
+    let currentAnneeId = null;
+
+    async function init() {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            window.location.href = '../login.html';
+            return;
+        }
+
+        await loadClasses();
+
+        document.getElementById('btn-load-schedule').addEventListener('click', loadSchedule);
+        document.getElementById('btn-auto-generate').addEventListener('click', autoGenerate);
+        document.getElementById('btn-publish').addEventListener('click', publishSchedule);
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = '../login.html';
+        });
+    }
+
+    async function loadClasses() {
+        try {
+            const token = localStorage.getItem('token');
+            const resp = await fetch(`${API_URL}/public/classes`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const classes = await resp.json();
+            
+            const select = document.getElementById('select-classe');
+            select.innerHTML = '<option value="">Choisir une classe...</option>';
+            classes.forEach(c => {
+                select.innerHTML += `<option value="${c.id}">${c.nom} (${c.filiere_nom})</option>`;
+            });
+        } catch (err) {
+            console.error('Erreur chargement classes:', err);
+        }
+    }
+
+    async function loadSchedule() {
+        currentClasseId = document.getElementById('select-classe').value;
+        currentSemestreId = document.getElementById('select-semestre').value;
+        currentAnneeId = document.getElementById('select-annee').value;
+
+        if (!currentClasseId) {
+            alert('Veuillez sélectionner une classe');
+            return;
+        }
+
+        // Clear grid
+        days.forEach(day => {
+            const col = document.querySelector(`[data-day="${day}"]`);
+            if (col) col.innerHTML = '';
+        });
+
+        try {
+            const token = localStorage.getItem('token');
+            // Fetch schedule for this class (including BROUILLON and VALIDE)
+            const resp = await fetch(`${API_URL}/public/schedule/${currentClasseId}/${currentSemestreId}`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            const courses = await resp.json();
+            console.log("Courses loaded:", courses);
+
+            courses.forEach(course => {
+                renderCourse(course);
+            });
+        } catch (err) {
+            console.error('Erreur chargement emploi du temps:', err);
+            alert("Erreur lors du chargement");
+        }
+    }
+
+    function renderCourse(course) {
+        const col = document.querySelector(`[data-day="${course.jour}"]`);
+        if (!col) return;
+
+        const startH = parseInt(course.heure_debut.split(':')[0]);
+        const startM = parseInt(course.heure_debut.split(':')[1]);
+        const endH = parseInt(course.heure_fin.split(':')[0]);
+        const endM = parseInt(course.heure_fin.split(':')[1]);
+
+        const top = (startH - 8) * 60 + (startM / 60 * 60);
+        const durationMin = (endH * 60 + endM) - (startH * 60 + startM);
+        const height = (durationMin / 60) * 60;
+
+        const el = document.createElement('div');
+        el.className = `absolute left-1 right-1 course-block border-l-4 rounded-lg p-2 overflow-hidden shadow-sm ${course.statut === 'BROUILLON' ? 'course-brouillon' : 'course-valide'}`;
+        el.style.top = `${top}px`;
+        el.style.height = `${height}px`;
+        el.dataset.courseId = course.id;
+        el.innerHTML = `
+            <p class="text-[10px] font-bold leading-tight ${course.statut === 'BROUILLON' ? 'text-amber-700' : 'text-blue-700'}">${course.ue_code}</p>
+            <p class="text-[11px] font-black text-gray-900 truncate" title="${course.ue_intitule}">${course.ue_intitule}</p>
+            <div class="mt-1 flex flex-col gap-0.5">
+                <span class="flex items-center gap-1 text-[9px] text-gray-600 font-medium">
+                    <span class="material-symbols-outlined text-[10px]">person</span> ${course.enseignant_nom || 'N/A'}
+                </span>
+                <span class="flex items-center gap-1 text-[9px] text-gray-600 font-medium">
+                    <span class="material-symbols-outlined text-[10px]">location_on</span> ${course.salle_nom || 'N/A'}
+                </span>
+                <span class="text-[8px] font-bold ${course.statut === 'BROUILLON' ? 'text-amber-600' : 'text-blue-600'}">${course.statut}</span>
+            </div>
+        `;
+        
+        // Click to delete (for testing)
+        el.addEventListener('click', () => {
+            if (confirm(`Supprimer ce cours ?\n${course.ue_code} - ${course.ue_intitule}`)) {
+                deleteCourse(course.id);
+            }
+        });
+
+        col.appendChild(el);
+    }
+
+    async function autoGenerate() {
+        if (!currentClasseId || !currentSemestreId || !currentAnneeId) {
+            alert('Veuillez d\'abord charger une classe');
+            return;
+        }
+
+        if (!confirm('Générer automatiquement l\'emploi du temps pour cette classe ?\nCela créera des cours en BROUILLON.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const resp = await fetch(`${API_URL}/admin/generate-schedule`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    classe_id: currentClasseId,
+                    semestre_id: currentSemestreId,
+                    annee_id: currentAnneeId
+                })
+            });
+
+            const result = await resp.json();
+            alert(`Génération terminée!\n${result.message}\n${result.nonAffectees?.length ? 'UEs non affectées: ' + result.nonAffectees.join(', ') : ''}`);
+            loadSchedule(); // Reload to show new courses
+        } catch (err) {
+            console.error('Erreur génération auto:', err);
+            alert("Erreur lors de la génération automatique");
+        }
+    }
+
+    async function publishSchedule() {
+        if (!currentClasseId || !currentSemestreId || !currentAnneeId) {
+            alert('Veuillez d\'abord charger une classe');
+            return;
+        }
+
+        if (!confirm('Publier tous les cours en BROUILLON ?\nIls deviendront VALIDÉS et visibles publiquement.')) {
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            const resp = await fetch(`${API_URL}/admin/publish-schedule`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    semestre_id: currentSemestreId,
+                    annee_id: currentAnneeId
+                })
+            });
+
+            const result = await resp.json();
+            alert(result.message);
+            loadSchedule(); // Reload to show updated statuses
+        } catch (err) {
+            console.error('Erreur publication:', err);
+            alert("Erreur lors de la publication");
+        }
+    }
+
+    async function deleteCourse(courseId) {
+        try {
+            const token = localStorage.getItem('token');
+            const resp = await fetch(`${API_URL}/admin/delete-course/${courseId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (resp.ok) {
+                loadSchedule(); // Reload
+            } else {
+                alert("Erreur lors de la suppression");
+            }
+        } catch (err) {
+            console.error('Erreur suppression:', err);
+        }
+    }
+
+    init();
+</script>
+</body>
+</html>

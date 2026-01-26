@@ -80,6 +80,21 @@ CREATE TABLE classes (
   FOREIGN KEY (filiere_id) REFERENCES filieres(id) ON DELETE CASCADE
 );
 
+-- ==========================================
+-- GESTION DES EFFECTIFS
+-- ==========================================
+CREATE TABLE classe_effectifs (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  classe_id INT NOT NULL,
+  annee_id INT NOT NULL,
+  semestre_id INT NOT NULL,
+  effectif INT NOT NULL,
+  FOREIGN KEY (classe_id) REFERENCES classes(id) ON DELETE CASCADE,
+  FOREIGN KEY (annee_id) REFERENCES annees_academiques(id) ON DELETE CASCADE,
+  FOREIGN KEY (semestre_id) REFERENCES semestres(id) ON DELETE CASCADE,
+  UNIQUE(classe_id, annee_id, semestre_id)
+);
+
 -- Dépend de 'classes' et 'semestres'
 CREATE TABLE ues (
   id INT AUTO_INCREMENT PRIMARY KEY,
@@ -122,18 +137,22 @@ CREATE TABLE disponibilites_enseignants (
 CREATE TABLE emplois_du_temps (
   id INT AUTO_INCREMENT PRIMARY KEY,
   ue_id INT NOT NULL,
+  salle_id INT NOT NULL,
   classe_id INT NOT NULL,
   plage_id INT NOT NULL,
   semestre_id INT NOT NULL,
   annee_id INT NOT NULL,
+  date_passage DATE NULL, -- Ajout pour respecter la 'date de passage' spécifique si besoin
   statut ENUM('BROUILLON','VALIDE') DEFAULT 'BROUILLON',
   FOREIGN KEY (ue_id) REFERENCES ues(id),
+  FOREIGN KEY (salle_id) REFERENCES salles(id),
   FOREIGN KEY (classe_id) REFERENCES classes(id),
   FOREIGN KEY (plage_id) REFERENCES plages_horaires(id),
   FOREIGN KEY (semestre_id) REFERENCES semestres(id),
   FOREIGN KEY (annee_id) REFERENCES annees_academiques(id),
-  UNIQUE (plage_id, classe_id),
-  UNIQUE (plage_id, ue_id)
+  UNIQUE (plage_id, salle_id, date_passage),
+  UNIQUE (plage_id, classe_id, date_passage), -- Mise à jour de la contrainte pour inclure la date si spécifiée
+  UNIQUE (plage_id, ue_id, date_passage)
 );
 
 CREATE TABLE historique_modifications (

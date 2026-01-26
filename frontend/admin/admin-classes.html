@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <meta content="Gestion des Classes - UniSched Admin" name="description"/>
+    <title>ICT 203 | Gestion des Classes</title>
+    <link href="https://fonts.googleapis.com" rel="preconnect"/>
+    <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script>
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#355f57",
+                        "primary-hover": "#2a4c45",
+                        "background-light": "#fafafa",
+                        "surface-light": "#ffffff",
+                        "border-light": "#e5e7eb",
+                    },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] },
+                },
+            },
+        }
+    </script>
+</head>
+<body class="bg-background-light text-[#131615] font-display overflow-hidden h-screen flex">
+
+<aside class="w-64 h-full flex flex-col bg-surface-light border-r border-border-light shrink-0 z-20">
+    <div class="p-6">
+        <div class="flex items-center gap-3">
+            <div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white shadow-lg">
+                <span class="material-symbols-outlined">school</span>
+            </div>
+            <h1 class="text-base font-bold tracking-tight">UniSched</h1>
+        </div>
+    </div>
+    <nav class="flex-1 px-3 py-4">
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-dashboard.html">
+            <span class="material-symbols-outlined">dashboard</span>
+            <span class="text-sm">Dashboard</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="admin-teachers.html">
+            <span class="material-symbols-outlined">group</span>
+            <span class="text-sm">Enseignants</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border-l-4 border-primary font-bold" href="admin-classes.html">
+            <span class="material-symbols-outlined">class</span>
+            <span class="text-sm">Classes & Effectifs</span>
+        </a>
+        <a class="flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 text-gray-600" href="validation-panel.html">
+            <span class="material-symbols-outlined">task_alt</span>
+            <span class="text-sm">Validation Panel</span>
+        </a>
+    </nav>
+    <div class="p-4 border-t border-border-light">
+        <button id="logout-btn" class="flex items-center gap-3 w-full text-left p-2 hover:bg-red-50 text-gray-600 hover:text-red-500 rounded-lg transition-colors">
+            <span class="material-symbols-outlined">logout</span>
+            <span class="text-sm font-medium">Déconnexion</span>
+        </button>
+    </div>
+</aside>
+
+<main class="flex-1 flex flex-col h-full min-w-0 overflow-hidden relative">
+    <header class="bg-surface-light border-b border-border-light px-8 py-5 flex items-center justify-between shrink-0 shadow-sm z-10">
+        <div>
+            <h2 class="text-2xl font-black tracking-tight text-gray-900">Gestion des Classes</h2>
+            <p class="text-sm text-gray-500 font-medium">Définissez les effectifs par semestre pour chaque classe</p>
+        </div>
+        <button onclick="openCreateModal()" class="bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-lg font-bold flex items-center gap-2 shadow-lg transition-all hover:shadow-primary/20">
+            <span class="material-symbols-outlined">add</span>
+            Nouvelle Classe
+        </button>
+    </header>
+
+    <div class="flex-1 overflow-auto p-8 custom-scrollbar">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="classes-list">
+            <!-- Classes will be loaded here -->
+        </div>
+    </div>
+</main>
+
+<!-- Create Modal -->
+<div id="modal-create" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-50">
+    <div class="bg-white p-8 rounded-2xl w-96 shadow-2xl">
+        <h3 class="text-xl font-bold mb-4">Ajouter une Classe</h3>
+        <form id="create-form" class="space-y-4">
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Nom (ex: L3 IF)</label>
+                <input type="text" id="new-nom" class="w-full border p-2 rounded-lg" required>
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-400 mb-1">Filière</label>
+                <select id="new-filiere" class="w-full border p-2 rounded-lg" required>
+                    <!-- Filled by JS -->
+                </select>
+            </div>
+            <div class="flex gap-3 pt-4">
+                <button type="button" onclick="closeCreateModal()" class="flex-1 border p-2 rounded-lg">Annuler</button>
+                <button type="submit" class="flex-1 bg-primary text-white p-2 rounded-lg font-bold">Créer</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+    const API_URL = "http://localhost:4000";
+
+    async function init() {
+        if (!localStorage.getItem('token')) {
+            window.location.href = '../login.html';
+            return;
+        }
+        await loadClasses();
+        await loadFilieres();
+    }
+
+    async function loadClasses() {
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_URL}/admin/classes`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+
+            if (res.status === 401) {
+                localStorage.removeItem('token');
+                window.location.href = '../login.html';
+                return;
+            }
+            
+            if (!res.ok) throw new Error("Erreur chargement classes");
+            
+            const classes = await res.json();
+            
+            const container = document.getElementById('classes-list');
+            container.innerHTML = '';
+
+            classes.forEach(cls => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-6 rounded-2xl shadow-sm border border-border-light hover:shadow-md transition-all";
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-lg font-bold text-gray-900">${cls.nom}</h3>
+                        <div class="bg-emerald-50 text-emerald-700 px-2 py-1 rounded text-xs font-bold">Actif</div>
+                    </div>
+                    
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 p-3 rounded-lg">
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Effectif Semestre 1</label>
+                            <div class="flex gap-2">
+                                <input type="number" class="w-full border-gray-200 rounded text-sm p-1.5" 
+                                    placeholder="Nb étudiants" 
+                                    id="eff-s1-${cls.id}">
+                                <button onclick="saveEffectif(${cls.id}, 1)" class="bg-primary text-white px-2 rounded hover:bg-primary-hover">
+                                    <span class="material-symbols-outlined text-sm">save</span>
+                                </button>
+                            </div>
+                        </div>
+                         <div class="bg-gray-50 p-3 rounded-lg">
+                            <label class="block text-[10px] uppercase font-bold text-gray-400 mb-1">Effectif Semestre 2</label>
+                            <div class="flex gap-2">
+                                <input type="number" class="w-full border-gray-200 rounded text-sm p-1.5" 
+                                    placeholder="Nb étudiants" 
+                                    id="eff-s2-${cls.id}">
+                                <button onclick="saveEffectif(${cls.id}, 2)" class="bg-primary text-white px-2 rounded hover:bg-primary-hover">
+                                    <span class="material-symbols-outlined text-sm">save</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        } catch (err) {
+            console.error(err);
+             // Optional: Display error to user
+        }
+    }
+
+    async function loadFilieres() {
+        const token = localStorage.getItem('token');
+        const res = await fetch(`${API_URL}/admin/filieres`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const filieres = await res.json();
+        const select = document.getElementById('new-filiere');
+        filieres.forEach(f => {
+            select.innerHTML += `<option value="${f.id}">${f.nom}</option>`;
+        });
+    }
+
+    window.saveEffectif = async (classeId, semestreId) => {
+        const input = document.getElementById(`eff-s${semestreId}-${classeId}`);
+        const effectif = parseInt(input.value);
+        
+        if (!effectif || effectif <= 0) {
+            alert("Veuillez entrer un effectif valide.");
+            return;
+        }
+
+        const token = localStorage.getItem('token');
+        try {
+            const res = await fetch(`${API_URL}/admin/classes/effectif`, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}` 
+                },
+                body: JSON.stringify({
+                    classe_id: classeId,
+                    semestre_id: semestreId,
+                    annee_id: 1, // Default Year
+                    effectif: effectif
+                })
+            });
+            
+            if(res.ok) {
+                // Visual feedback
+                const btn = input.nextElementSibling;
+                const originalHtml = btn.innerHTML;
+                btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-bounce">check</span>';
+                setTimeout(() => btn.innerHTML = originalHtml, 1000);
+            } else {
+                alert("Erreur lors de la sauvegarde.");
+            }
+        } catch(err) {
+            console.error(err);
+            alert("Erreur serveur.");
+        }
+    };
+
+    window.openCreateModal = () => document.getElementById('modal-create').classList.remove('hidden');
+    window.closeCreateModal = () => document.getElementById('modal-create').classList.add('hidden');
+
+    document.getElementById('create-form').onsubmit = async (e) => {
+        e.preventDefault();
+        const nom = document.getElementById('new-nom').value;
+        const filiere = document.getElementById('new-filiere').value;
+        const token = localStorage.getItem('token');
+
+        const res = await fetch(`${API_URL}/admin/classes`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ nom, filiere_id: filiere })
+        });
+
+        if(res.ok) {
+            closeCreateModal();
+            loadClasses();
+        }
+    };
+    
+    document.getElementById('logout-btn').onclick = () => {
+        localStorage.clear();
+        window.location.href = '../login.html';
+    };
+
+    init();
+</script>
+</body>
+</html>

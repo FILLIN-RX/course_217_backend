@@ -8,4 +8,12 @@ router.get(
   publicController.getPublicSchedule,
 );
 
+router.get("/salles", publicController.getSalles);
+router.get(
+  "/schedule/room/:salle_id/:semestre_id",
+  publicController.getPublicRoomSchedule,
+);
+
+router.get("/classes", publicController.getClassesPublic);
+
 export default router;

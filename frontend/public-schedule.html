@@ -3,374 +3,157 @@
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>UniSched | Emplois du Temps Publics</title>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <title>UniSched | Emploi du Temps par Classe</title>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,FILL@0..1&display=swap" rel="stylesheet"/>
+    <script src="https://cdn.tailwindcss.com"></script>
     <script>
         tailwind.config = {
-            darkMode: "class",
             theme: {
                 extend: {
-                    colors: {
-                        "primary": "#355f57",
-                        "primary-hover": "#2a4c45",
-                        "background-light": "#fafafa",
-                        "surface-light": "#ffffff",
-                        "border-light": "#e5e7eb",
-                    },
-                    fontFamily: { "display": ["Manrope", "sans-serif"] },
-                },
-            },
+                    colors: { "primary": "#355f57", "background-light": "#fafafa" },
+                    fontFamily: { "display": ["Manrope", "sans-serif"] }
+                }
+            }
         }
     </script>
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 4px; }
-        
-        .course-block {
-            transition: all 0.2s ease;
-        }
-        .course-block:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(53, 95, 87, 0.2);
-        }
+        .course-card { transition: all 0.2s ease; z-index: 10; }
+        .course-card:hover { transform: scale(1.02); box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .grid-line { border-bottom: 1px solid #e5e7eb; height: 60px; }
     </style>
 </head>
-<body class="bg-background-light text-[#131615] font-display min-h-screen flex flex-col">
+<body class="bg-background-light font-display">
 
-<!-- Header -->
-<header class="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-border-light px-6 py-4 shadow-sm">
-    <div class="max-w-7xl mx-auto flex items-center justify-between">
-        <div class="flex items-center gap-3">
-            <div class="size-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                <span class="material-symbols-outlined text-2xl">school</span>
-            </div>
-            <div>
-                <h1 class="text-xl font-bold tracking-tight text-gray-900 leading-none">UniSched</h1>
-                <p class="text-xs font-medium text-gray-500 mt-1 uppercase tracking-wider">Consultation Publique</p>
-            </div>
+<main class="max-w-7xl mx-auto p-6">
+    <div class="bg-white p-6 rounded-xl shadow-sm mb-8 flex flex-col md:flex-row gap-4 items-end border border-gray-100">
+        <div class="flex-1">
+            <label class="block text-sm font-bold text-gray-700 mb-2">Choisir la Classe</label>
+            <select id="select-classe" class="w-full border-gray-200 rounded-lg focus:ring-primary focus:border-primary">
+                <option value="">Chargement...</option>
+            </select>
         </div>
-        <div class="flex items-center gap-4">
-            <span class="hidden md:inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 border border-emerald-200 text-xs font-semibold text-emerald-700">
-                <span class="material-symbols-outlined text-[16px]">public</span>
-                Accès Public
-            </span>
+        <div class="w-48">
+            <label class="block text-sm font-bold text-gray-700 mb-2">Semestre</label>
+            <select id="select-semestre" class="w-full border-gray-200 rounded-lg">
+                <option value="1">Semestre 1</option>
+                <option value="2">Semestre 2</option>
+            </select>
         </div>
+        <button id="btn-charger" class="bg-primary text-white px-8 py-2.5 rounded-lg font-bold hover:opacity-90 transition-all flex items-center gap-2">
+            <span class="material-symbols-outlined">search</span> Afficher
+        </button>
     </div>
-</header>
 
-<!-- Main Content -->
-<main class="flex-1 w-full max-w-7xl mx-auto p-6 flex flex-col gap-6">
-    <!-- Filters Section -->
-    <section class="bg-white rounded-xl border border-border-light shadow-sm p-5">
-        <div class="flex flex-col md:flex-row items-end gap-4">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 flex-1 w-full">
-                <!-- Filière Select -->
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-gray-700">Filière</label>
-                    <div class="relative group">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 material-symbols-outlined text-[20px]">school</span>
-                        <select id="select-filiere" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer hover:bg-white hover:border-primary/50">
-                            <option value="">Choisir une filière...</option>
-                        </select>
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 material-symbols-outlined text-[20px] pointer-events-none">expand_more</span>
+    <div id="calendar-view" class="hidden">
+        <div class="grid grid-cols-7 bg-primary text-white rounded-t-xl overflow-hidden shadow-lg">
+            <div class="p-4 text-center border-r border-white/10 font-bold text-xs uppercase">Heure</div>
+            <div class="p-4 text-center border-r border-white/10 font-bold">Lundi</div>
+            <div class="p-4 text-center border-r border-white/10 font-bold">Mardi</div>
+            <div class="p-4 text-center border-r border-white/10 font-bold">Mercredi</div>
+            <div class="p-4 text-center border-r border-white/10 font-bold">Jeudi</div>
+            <div class="p-4 text-center border-r border-white/10 font-bold">Vendredi</div>
+            <div class="p-4 text-center font-bold">Samedi</div>
+        </div>
+
+        <div class="relative bg-white border border-gray-200 rounded-b-xl shadow-sm overflow-hidden" style="height: 720px;">
+            <div class="absolute inset-0">
+                <div class="grid grid-cols-7 h-full">
+                    <div class="border-r border-gray-100 bg-gray-50/50">
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">08:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">09:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">10:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">11:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">12:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">13:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">14:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">15:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">16:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">17:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">18:00</div>
+                        <div class="grid-line flex items-center justify-center text-[10px] font-bold text-gray-400">19:00</div>
                     </div>
+                    <div class="relative border-r border-gray-100" data-day="Lundi"></div>
+                    <div class="relative border-r border-gray-100" data-day="Mardi"></div>
+                    <div class="relative border-r border-gray-100" data-day="Mercredi"></div>
+                    <div class="relative border-r border-gray-100" data-day="Jeudi"></div>
+                    <div class="relative border-r border-gray-100" data-day="Vendredi"></div>
+                    <div class="relative" data-day="Samedi"></div>
                 </div>
-
-                <!-- Classe Select -->
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-gray-700">Classe</label>
-                    <div class="relative group">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 material-symbols-outlined text-[20px]">groups</span>
-                        <select id="select-classe" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer hover:bg-white hover:border-primary/50" disabled>
-                            <option value="">Sélectionnez d'abord une filière...</option>
-                        </select>
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 material-symbols-outlined text-[20px] pointer-events-none">expand_more</span>
-                    </div>
-                </div>
-
-                <!-- Semestre Select -->
-                <div class="flex flex-col gap-1.5">
-                    <label class="text-sm font-semibold text-gray-700">Semestre</label>
-                    <div class="relative group">
-                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 material-symbols-outlined text-[20px]">calendar_today</span>
-                        <select id="select-semestre" class="w-full pl-10 pr-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none cursor-pointer hover:bg-white hover:border-primary/50">
-                            <option value="1">Semestre 1</option>
-                            <option value="2">Semestre 2</option>
-                        </select>
-                        <span class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 material-symbols-outlined text-[20px] pointer-events-none">expand_more</span>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Action Button -->
-            <button id="btn-view-schedule" class="w-full md:w-auto px-6 py-2.5 bg-primary hover:bg-primary-hover text-white text-sm font-bold rounded-lg shadow-sm hover:shadow transition-all flex items-center justify-center gap-2 min-w-[140px]">
-                <span class="material-symbols-outlined text-[20px]">calendar_month</span>
-                Afficher
-            </button>
-        </div>
-    </section>
-
-    <!-- Class Info Summary -->
-    <div id="class-info" class="hidden items-center justify-between px-1">
-        <div>
-            <h2 id="class-title" class="text-2xl font-bold text-gray-900">Emploi du Temps</h2>
-            <p id="class-subtitle" class="text-sm text-gray-500 flex items-center gap-2 mt-1">
-                <span class="material-symbols-outlined text-[16px]">info</span>
-                Sélectionnez une classe pour voir l'emploi du temps
-            </p>
-        </div>
-        <div class="hidden sm:flex items-center gap-4 text-xs font-medium text-gray-500">
-            <div class="flex items-center gap-1.5">
-                <div class="w-3 h-3 rounded-sm bg-primary/10 border-l-2 border-primary"></div>
-                <span>Cours Validé</span>
             </div>
         </div>
     </div>
-
-    <!-- Weekly Calendar Grid -->
-    <div id="calendar-container" class="hidden flex-1 bg-white border border-border-light rounded-xl shadow-sm overflow-hidden flex flex-col relative min-h-[800px]">
-        <!-- Calendar Header (Days) -->
-        <div class="grid grid-cols-8 border-b border-border-light bg-gray-50/50 sticky top-0 z-20">
-            <div class="p-3 border-r border-border-light flex items-center justify-center">
-                <span class="text-xs font-bold text-gray-400 uppercase">Heures</span>
-            </div>
-            <div class="p-3 border-r border-border-light text-center">
-                <p class="text-xs font-medium text-gray-500 uppercase mb-0.5">Lun</p>
-                <p class="text-lg font-bold text-gray-900">Lundi</p>
-            </div>
-            <div class="p-3 border-r border-border-light text-center">
-                <p class="text-xs font-medium text-gray-500 uppercase mb-0.5">Mar</p>
-                <p class="text-lg font-bold text-gray-900">Mardi</p>
-            </div>
-            <div class="p-3 border-r border-border-light text-center">
-                <p class="text-xs font-medium text-gray-500 uppercase mb-0.5">Mer</p>
-                <p class="text-lg font-bold text-gray-900">Mercredi</p>
-            </div>
-            <div class="p-3 border-r border-border-light text-center">
-                <p class="text-xs font-medium text-gray-500 uppercase mb-0.5">Jeu</p>
-                <p class="text-lg font-bold text-gray-900">Jeudi</p>
-            </div>
-            <div class="p-3 border-r border-border-light text-center">
-                <p class="text-xs font-medium text-gray-500 uppercase mb-0.5">Ven</p>
-                <p class="text-lg font-bold text-gray-900">Vendredi</p>
-            </div>
-            <div class="p-3 text-center bg-gray-50">
-                <p class="text-xs font-medium text-gray-400 uppercase mb-0.5">Sam</p>
-                <p class="text-lg font-bold text-gray-400">Samedi</p>
-            </div>
-        </div>
-
-        <!-- Calendar Body (Scrollable) -->
-        <div class="flex-1 overflow-y-auto relative custom-scrollbar">
-            <!-- Grid Background -->
-            <div class="grid grid-cols-8 min-h-[720px] w-full absolute top-0 left-0 pointer-events-none">
-                <div class="border-r border-border-light bg-white z-20"></div>
-                <div class="border-r border-border-light border-dashed"></div>
-                <div class="border-r border-border-light border-dashed"></div>
-                <div class="border-r border-border-light border-dashed"></div>
-                <div class="border-r border-border-light border-dashed"></div>
-                <div class="border-r border-border-light border-dashed"></div>
-                <div class="bg-gray-50/30"></div>
-            </div>
-
-            <!-- Time Slots & Events -->
-            <div class="relative min-h-[720px] grid grid-cols-8" id="schedule-grid">
-                <!-- Time Labels -->
-                <div class="flex flex-col text-right pr-3 pt-0 relative z-10 bg-white text-xs text-gray-400 font-medium">
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">08:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">09:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">10:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">11:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">12:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">13:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">14:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">15:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">16:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">17:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">18:00</span></div>
-                    <div class="h-[60px] relative"><span class="absolute -top-2.5 right-3">19:00</span></div>
-                </div>
-
-                <!-- Day Columns (will be populated dynamically) -->
-                <div class="relative h-full border-r border-transparent" data-day="Lundi"></div>
-                <div class="relative h-full border-r border-transparent" data-day="Mardi"></div>
-                <div class="relative h-full border-r border-transparent" data-day="Mercredi"></div>
-                <div class="relative h-full border-r border-transparent" data-day="Jeudi"></div>
-                <div class="relative h-full border-r border-transparent" data-day="Vendredi"></div>
-                <div class="relative h-full" data-day="Samedi"></div>
-            </div>
-
-            <!-- Grid Horizontal Lines -->
-            <div class="absolute top-0 left-0 right-0 pointer-events-none z-0">
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-                <div class="h-[60px] border-b border-border-light/50 w-full"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Empty State -->
-    <div id="empty-state" class="flex-1 flex items-center justify-center bg-white border border-border-light rounded-xl shadow-sm min-h-[400px]">
-        <div class="text-center">
-            <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <span class="material-symbols-outlined text-4xl text-gray-400">calendar_month</span>
-            </div>
-            <h3 class="text-lg font-bold text-gray-900 mb-2">Aucun emploi du temps sélectionné</h3>
-            <p class="text-sm text-gray-500">Sélectionnez une classe et un semestre pour afficher l'emploi du temps</p>
-        </div>
-    </div>
-
-    <!-- Footer -->
-    <footer class="flex flex-col md:flex-row justify-between items-center text-xs text-gray-500 py-4 gap-4 border-t border-border-light mt-8">
-        <div class="flex items-center gap-6">
-            <p>© 2024 UniSched - Système de Gestion d'Emplois du Temps</p>
-        </div>
-        <div class="text-right">
-            <p id="last-updated">Dernière mise à jour: --</p>
-        </div>
-    </footer>
 </main>
 
 <script type="module">
     const API_URL = "http://localhost:4000";
-    const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi'];
 
     async function init() {
-        await loadFilieres();
-        
-        // Event listeners
-        document.getElementById('select-filiere').addEventListener('change', loadClasses);
-        document.getElementById('btn-view-schedule').addEventListener('click', loadSchedule);
-    }
-
-    async function loadFilieres() {
+        // Charger les classes au démarrage
         try {
-            const resp = await fetch(`${API_URL}/admin/filieres`);
-            const filieres = await resp.json();
-            
-            const select = document.getElementById('select-filiere');
-            select.innerHTML = '<option value="">Choisir une filière...</option>';
-            filieres.forEach(f => {
-                select.innerHTML += `<option value="${f.id}">${f.filiere_nom}</option>`;
-            });
-        } catch (err) {
-            console.error('Erreur chargement filières:', err);
-        }
-    }
-
-    async function loadClasses() {
-        const filiereId = document.getElementById('select-filiere').value;
-        const classeSelect = document.getElementById('select-classe');
-        
-        if (!filiereId) {
-            classeSelect.disabled = true;
-            classeSelect.innerHTML = '<option value="">Sélectionnez d\'abord une filière...</option>';
-            return;
-        }
-
-        try {
-            const resp = await fetch(`${API_URL}/admin/classes`);
-            const allClasses = await resp.json();
-            const classes = allClasses.filter(c => c.filiere_id == filiereId);
-            
-            classeSelect.innerHTML = '<option value="">Choisir une classe...</option>';
+            const res = await fetch(`${API_URL}/public/classes`);
+            const classes = await res.json();
+            const select = document.getElementById('select-classe');
+            select.innerHTML = '<option value="">Choisir une classe...</option>';
             classes.forEach(c => {
-                classeSelect.innerHTML += `<option value="${c.id}">${c.nom}</option>`;
+                select.innerHTML += `<option value="${c.id}">${c.nom}</option>`;
             });
-            classeSelect.disabled = false;
-        } catch (err) {
-            console.error('Erreur chargement classes:', err);
-        }
+        } catch (e) { console.error("Erreur classes", e); }
+
+        document.getElementById('btn-charger').addEventListener('click', chargerEmploiDuTemps);
     }
 
-    async function loadSchedule() {
+    async function chargerEmploiDuTemps() {
         const classeId = document.getElementById('select-classe').value;
         const semestreId = document.getElementById('select-semestre').value;
-        
-        if (!classeId) {
-            alert('Veuillez sélectionner une classe');
-            return;
-        }
+        if(!classeId) return alert("Sélectionnez une classe");
 
-        const classeName = document.getElementById('select-classe').selectedOptions[0].text;
-        const semestre = semestreId == 1 ? 'Semestre 1' : 'Semestre 2';
+        document.getElementById('calendar-view').classList.remove('hidden');
 
-        // Update UI
-        document.getElementById('class-title').textContent = `Emploi du Temps - ${classeName}`;
-        document.getElementById('class-subtitle').innerHTML = `<span class="material-symbols-outlined text-[16px]">info</span> ${semestre} - Année Académique 2024/2025`;
-        document.getElementById('class-info').classList.remove('hidden');
-        document.getElementById('class-info').classList.add('flex');
-        document.getElementById('empty-state').classList.add('hidden');
-        document.getElementById('calendar-container').classList.remove('hidden');
-        document.getElementById('calendar-container').classList.add('flex');
-
-        // Clear previous schedule
-        days.forEach(day => {
-            const col = document.querySelector(`[data-day="${day}"]`);
-            if (col) col.innerHTML = '';
-        });
+        // Nettoyer la grille
+        document.querySelectorAll('[data-day]').forEach(col => col.innerHTML = '');
 
         try {
-            const resp = await fetch(`${API_URL}/public/schedule/${classeId}/${semestreId}`);
-            const assignments = await resp.json();
-            console.log("Assignments chargés:", assignments);
-            
-            assignments.forEach(assign => {
-                renderCourse(assign);
+            // Appel à l'API publique (ne renvoie que les cours VALIDÉS)
+            const res = await fetch(`${API_URL}/public/schedule/${classeId}/${semestreId}`);
+            const cours = await res.json();
+
+            cours.forEach(c => {
+                const col = document.querySelector(`[data-day="${c.jour}"]`);
+                if(col) {
+                    // Calcul position : (Heure début - 8) * 60px
+                    const startH = parseInt(c.heure_debut.split(':')[0]);
+                    const startM = parseInt(c.heure_debut.split(':')[1]);
+                    const endH = parseInt(c.heure_fin.split(':')[0]);
+                    const endM = parseInt(c.heure_fin.split(':')[1]);
+
+                    const top = (startH - 8) * 60 + (startM);
+                    const height = ((endH * 60 + endM) - (startH * 60 + startM));
+
+                    const card = document.createElement('div');
+                    card.className = "absolute left-1 right-1 course-card bg-primary/10 border-l-4 border-primary rounded-lg p-2 overflow-hidden shadow-sm";
+                    card.style.top = `${top}px`;
+                    card.style.height = `${height}px`;
+
+                    card.innerHTML = `
+                        <p class="text-[10px] font-bold text-primary uppercase">${c.ue_code}</p>
+                        <p class="text-[11px] font-extrabold text-gray-900 leading-tight truncate">${c.ue_intitule}</p>
+                        <div class="mt-2 flex flex-col gap-1">
+                            <span class="flex items-center gap-1 text-[9px] text-gray-500 font-bold">
+                                <span class="material-symbols-outlined text-[12px]">person</span> ${c.enseignant_nom || 'Prof à confirmer'}
+                            </span>
+                            <span class="flex items-center gap-1 text-[9px] text-gray-500 font-bold">
+                                <span class="material-symbols-outlined text-[12px]">location_on</span> ${c.salle_nom || 'Salle ?'}
+                            </span>
+                        </div>
+                    `;
+                    col.appendChild(card);
+                }
             });
-
-            document.getElementById('last-updated').textContent = `Dernière mise à jour: ${new Date().toLocaleString('fr-FR')}`;
-        } catch (err) {
-            console.error('Erreur chargement emploi du temps:', err);
-            alert("Erreur lors du chargement de l'emploi du temps.");
-        }
+        } catch (e) { alert("Erreur lors du chargement"); }
     }
 
-    function renderCourse(assign) {
-        const col = document.querySelector(`[data-day="${assign.jour}"]`);
-        if (!col) return;
-
-        // Calculer la position (chaque heure = 60px)
-        const startH = parseInt(assign.heure_debut.split(':')[0]);
-        const startM = parseInt(assign.heure_debut.split(':')[1]);
-        const endH = parseInt(assign.heure_fin.split(':')[0]);
-        const endM = parseInt(assign.heure_fin.split(':')[1]);
-
-        const top = (startH - 8) * 60 + (startM / 60 * 60);
-        const durationMin = (endH * 60 + endM) - (startH * 60 + startM);
-        const height = (durationMin / 60) * 60;
-
-        const el = document.createElement('div');
-        el.className = "absolute left-1 right-1 course-block bg-primary/10 border-l-4 border-primary rounded-lg p-2 overflow-hidden shadow-sm";
-        el.style.top = `${top}px`;
-        el.style.height = `${height}px`;
-        el.innerHTML = `
-            <p class="text-[10px] font-bold text-primary leading-tight">${assign.ue_code}</p>
-            <p class="text-[11px] font-black text-gray-900 truncate">${assign.ue_intitule}</p>
-            <div class="mt-1 flex flex-col gap-0.5">
-                <span class="flex items-center gap-1 text-[9px] text-gray-500 font-medium">
-                    <span class="material-symbols-outlined text-[10px]">person</span> ${assign.enseignant_nom}
-                </span>
-                <span class="flex items-center gap-1 text-[9px] text-gray-500 font-medium">
-                    <span class="material-symbols-outlined text-[10px]">location_on</span> ${assign.salle_nom}
-                </span>
-            </div>
-        `;
-        col.appendChild(el);
-    }
-
-    init();
+    window.onload = init;
 </script>
 </body>
 </html>
